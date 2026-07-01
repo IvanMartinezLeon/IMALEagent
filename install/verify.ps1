@@ -108,12 +108,19 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         Write-Host "⚠ context-mode MCP : No detectado en $agentMcpConfig" -ForegroundColor $Yellow
     }
 
-    $routerExtension = Join-Path $agentConfigDir "extensions\ai-router.ts"
-    if (Test-Path $routerExtension) {
-        Write-Host "✓ ai-router extension : Instalada" -ForegroundColor $Green
+    $eurecatExtensions = @(
+        (Join-Path $agentConfigDir "extensions\ai-router.ts"),
+        (Join-Path $agentConfigDir "extensions\eurecat-header.ts"),
+        (Join-Path $agentConfigDir "extensions\eurecat-preset.ts"),
+        (Join-Path $agentConfigDir "extensions\lib\shared-ui.ts")
+    )
+    $missingExtensions = ($eurecatExtensions | Where-Object { -not (Test-Path $_) }).Count
+    if ($missingExtensions -eq 0) {
+        Write-Host "✓ Extensiones EURECAT : Instaladas en $agentConfigDir\extensions" -ForegroundColor $Green
         $global:checksPass++
     } else {
-        Write-Host "⚠ ai-router extension : No encontrada en $routerExtension" -ForegroundColor $Yellow
+        Write-Host "✗ Extensiones EURECAT : Faltan $missingExtensions archivo(s)" -ForegroundColor $Red
+        $global:checksFail++
     }
 
     $genericAgents = @(

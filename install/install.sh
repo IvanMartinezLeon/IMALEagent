@@ -127,6 +127,7 @@ fi
 mkdir -p "${AGENT_CONFIG_DIR}"
 cp -R "${CONFIG_SOURCE_DIR}/." "${AGENT_CONFIG_DIR}/"
 echo -e "${GREEN}✓ Configuración copiada ${NC}"
+echo -e "${GREEN}✓ Extensiones del agente instaladas${NC} (ai-router, eurecat-header, eurecat-preset)"
 verify_subagent_config
 
 echo -e "${YELLOW}Instalando y activando paquetes...${NC}"

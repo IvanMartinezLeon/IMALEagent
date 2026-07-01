@@ -120,11 +120,17 @@ if %errorlevel% equ 0 (
         )
     )
 
-    if exist "!AGENT_CONFIG_DIR!\extensions\ai-router.ts" (
-        echo [OK] ai-router extension: Instalada
+    set /a missing_extensions=0
+    if not exist "!AGENT_CONFIG_DIR!\extensions\ai-router.ts" set /a missing_extensions+=1
+    if not exist "!AGENT_CONFIG_DIR!\extensions\eurecat-header.ts" set /a missing_extensions+=1
+    if not exist "!AGENT_CONFIG_DIR!\extensions\eurecat-preset.ts" set /a missing_extensions+=1
+    if not exist "!AGENT_CONFIG_DIR!\extensions\lib\shared-ui.ts" set /a missing_extensions+=1
+    if !missing_extensions! equ 0 (
+        echo [OK] Extensiones EURECAT: Instaladas en !AGENT_CONFIG_DIR!\extensions
         set /a checks_pass+=1
     ) else (
-        echo [WARN] ai-router extension: No encontrada
+        echo [FAIL] Extensiones EURECAT: Faltan !missing_extensions! archivo^(s^)
+        set /a checks_fail+=1
     )
 
     set /a missing_generic_agents=0

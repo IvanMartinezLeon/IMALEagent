@@ -107,6 +107,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     routerState.lastPromptMode = "general";
+    pi.events.emit("eurecat:agent-mode", { mode: routerState.lastPromptMode });
     routerState.lastPrompt = undefined;
     await refreshCapabilities(ctx.cwd);
     setStatus(ctx);
@@ -121,6 +122,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     const promptText = typeof event.prompt === "string" ? event.prompt : "";
     routerState.lastPrompt = promptText;
     routerState.lastPromptMode = classifyPrompt(promptText);
+    pi.events.emit("eurecat:agent-mode", { mode: routerState.lastPromptMode });
     setStatus(ctx);
 
     const parts: string[] = [];

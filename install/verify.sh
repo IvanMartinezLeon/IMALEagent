@@ -107,11 +107,25 @@ if command -v pi &>/dev/null; then
 		echo -e "${YELLOW}⚠ context-mode MCP${NC}: No detectado en ${AGENT_CONFIG_DIR}/mcp.json"
 	fi
 
-	if [ -f "${AGENT_CONFIG_DIR}/extensions/ai-router.ts" ]; then
-		echo -e "${GREEN}✓ ai-router extension${NC}: Instalada"
+	EURECAT_EXTENSIONS=(
+		"extensions/ai-router.ts"
+		"extensions/eurecat-header.ts"
+		"extensions/eurecat-preset.ts"
+		"extensions/lib/shared-ui.ts"
+	)
+	MISSING_EXTENSIONS=0
+	for ext in "${EURECAT_EXTENSIONS[@]}"; do
+		if [ ! -f "${AGENT_CONFIG_DIR}/${ext}" ]; then
+			echo -e "${YELLOW}⚠ Extensión${NC}: ${ext} no encontrada"
+			((MISSING_EXTENSIONS++))
+		fi
+	done
+	if [ ${MISSING_EXTENSIONS} -eq 0 ]; then
+		echo -e "${GREEN}✓ Extensiones EURECAT${NC}: Instaladas en ${AGENT_CONFIG_DIR}/extensions"
 		((CHECKS_PASSED++))
 	else
-		echo -e "${YELLOW}⚠ ai-router extension${NC}: No encontrada en ${AGENT_CONFIG_DIR}/extensions"
+		echo -e "${RED}✗ Extensiones EURECAT${NC}: Faltan ${MISSING_EXTENSIONS} archivo(s)"
+		((CHECKS_FAILED++))
 	fi
 
 	GENERIC_AGENTS=(

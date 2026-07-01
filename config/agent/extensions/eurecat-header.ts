@@ -1,5 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth } from "@earendil-works/pi-tui";
+import { showSelectList } from "./lib/shared-ui";
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join, sep } from "path";
 import { homedir } from "os";
@@ -11,6 +12,7 @@ export default function (pi: ExtensionAPI) {
   let sessionCtx: ExtensionContext | null = null;
   let totalInput = 0;
   let totalOutput = 0;
+  let currentMode = "general";
 
   pi.on("message_end", (_event, _ctx) => {
     const msg = _event.message as Record<string, unknown>;
@@ -33,6 +35,10 @@ export default function (pi: ExtensionAPI) {
       projectName = ctx.cwd.split("/").pop() || ctx.cwd.split("\\").pop() || null;
     }
     sessionCtx = ctx;
+    currentMode = "general";
+    pi.events.on("eurecat:agent-mode", (data: { mode: string }) => {
+      currentMode = data.mode;
+    });
     const framework = cachedFramework;
     const logo = loadLogo();
 
@@ -81,47 +87,87 @@ export default function (pi: ExtensionAPI) {
           // ── LÍNEA 2: Info personalizada ───────────────────────
           const infoParts: { text: string; color: string }[] = [];
 
+          // Modo del agente
+          const modeColors: Record<string, string> = {
+            general: "muted",
+            structural: "accent",
+            "debug-heavy": "warning",
+            review: "success",
+            implement: "accent",
+          };
+          const modeLabels: Record<string, string> = {
+            general: "general",
+            structural: "structural",
+            "debug-heavy": "debug",
+            review: "review",
+            implement: "implement",
+          };
+          infoParts.push({
+            text: modeLabels[currentMode] || currentMode,
+            color: modeColors[currentMode] || "muted",
+          });
+
           // Modelo
           const modelId = sessionCtx?.model?.id;
           if (modelId) {
             infoParts.push({ text: modelId, color: "muted" });
           }
 
-          // Tokens
+          // Tokens + Credits
           if (totalInput + totalOutput > 0) {
+            const mid = sessionCtx?.model?.id || "";
+            const credits = calcCredits(mid, totalInput, totalOutput);
             infoParts.push({
               text: `↑${fmt(totalInput)} ↓${fmt(totalOutput)}`,
               color: "muted",
             });
-          }
-
-          // Contexto %
-          const usage = sessionCtx?.getContextUsage();
-          const pct = usage?.percent;
-          if (pct != null) {
-            const ctxColor = pct > 80 ? "error" : pct > 50 ? "warning" : "muted";
-            infoParts.push({
-              text: `${pct.toFixed(0)}% ctx`,
-              color: ctxColor,
-            });
+            if (credits > 0.001) {
+              infoParts.push({
+                text: credits < 0.01
+                  ? `<0.01¢`
+                  : `${credits.toFixed(2)}¢`,
+                color: "muted",
+              });
+            }
           }
 
           const leftInfo = infoParts
             .map(p => theme.fg(p.color, p.text))
             .join(` ${theme.fg("dim", "|")} `);
 
+          // ── Context bar (barra en lugar del texto simple) ──────
+          const ctxUsage = sessionCtx?.getContextUsage();
+          const ctxPct = ctxUsage?.percent;
+          let infoLine = leftInfo;
+          if (ctxPct != null) {
+            const ctxStr = `${theme.fg("muted", "ctx")} ${theme.fg("muted", ctxPct.toFixed(0))}${theme.fg("muted", "%")}`;
+            infoLine = leftInfo ? `${leftInfo} ${theme.fg("muted", "|")} ${theme.fg("muted", ctxStr)}` : theme.fg("muted", ctxStr);
+          }
+
           // ── Ensamblar (ambas líneas alineadas a la derecha) ────
           const lines: string[] = [];
           if (versionLine) {
             lines.push(padLeft(versionLine, width));
           }
-          lines.push(padLeft(leftInfo, width));
+          lines.push(padLeft(infoLine, width));
 
           // Truncate each line to terminal width
           return lines.map(l => truncateToWidth(l, width));
         },
       };
     });
+
+    // ── Custom Working Indicator ──────────────────────────────────────
+    ctx.ui.setWorkingIndicator({
+      frames: [
+        ctx.ui.theme.fg("thinkingLow", "◇"),
+        ctx.ui.theme.fg("accent", "◆"),
+        ctx.ui.theme.fg("thinkingMedium", "◇"),
+        ctx.ui.theme.fg("accent", "◆"),
+      ],
+      intervalMs: 120,
+    });
+
   });
 
   pi.registerCommand("builtin-header", {
@@ -130,6 +176,38 @@ export default function (pi: ExtensionAPI) {
       ctx.ui.setHeader(undefined);
       ctx.ui.setFooter(undefined);
       ctx.ui.notify("Built-in header restored", "info");
+    },
+  });
+
+  // ── Mode Selector ───────────────────────────────────────────────────
+  const MODES: { value: string; label: string; description: string }[] = [
+    { value: "general", label: "General", description: "Default mode – balanced capabilities" },
+    { value: "structural", label: "Structural", description: "Architecture and codebase exploration" },
+    { value: "debug-heavy", label: "Debug", description: "Deep debugging with verbose output" },
+    { value: "review", label: "Review", description: "Code review and quality checks" },
+    { value: "implement", label: "Implement", description: "Focused implementation tasks" },
+  ];
+
+  pi.registerCommand("mode", {
+    description: "Switch agent mode via interactive selector",
+    handler: async (_args, ctx) => {
+      const items = MODES.map((m) => ({
+        value: m.value,
+        label: m.value === currentMode ? `${m.label} (active)` : m.label,
+        description: m.description,
+      }));
+
+      const result = await showSelectList(ctx, items, {
+        title: "Select Agent Mode",
+        maxVisible: 8,
+        navHint: "↑↓ navigate • enter select • esc cancel",
+      });
+
+      if (result && result !== currentMode) {
+        currentMode = result;
+        pi.events.emit("eurecat:agent-mode", { mode: result });
+        ctx.ui.notify(`Mode switched to: ${result}`, "info");
+      }
     },
   });
 }
@@ -143,6 +221,106 @@ function loadLogo(): string[] | null {
   } catch {
     return null;
   }
+}
+
+// ── Model Pricing Table ──────────────────────────────────────────
+// Cost per 1K tokens in USD (input / output) for common models.
+// 1 AI Credit = $0.01 USD → credits = totalCost * 100
+interface ModelPricing {
+  inputPer1K: number;  // USD per 1K input tokens
+  outputPer1K: number; // USD per 1K output tokens
+}
+
+const MODEL_PRICING: Record<string, ModelPricing> = {
+  // Anthropic Claude
+  "claude-sonnet-4":     { inputPer1K: 0.003,  outputPer1K: 0.015 },
+  "claude-4-sonnet":     { inputPer1K: 0.003,  outputPer1K: 0.015 },
+  "claude-3.5-sonnet":   { inputPer1K: 0.003,  outputPer1K: 0.015 },
+  "claude-3-opus":       { inputPer1K: 0.015,  outputPer1K: 0.075 },
+  "claude-3-haiku":      { inputPer1K: 0.00025, outputPer1K: 0.00125 },
+  "claude-opus-4":       { inputPer1K: 0.015,  outputPer1K: 0.075 },
+  // OpenAI / Azure OpenAI
+  "gpt-4o":              { inputPer1K: 0.0025, outputPer1K: 0.01 },
+  "gpt-4o-mini":         { inputPer1K: 0.00015, outputPer1K: 0.0006 },
+  "gpt-4":               { inputPer1K: 0.03,   outputPer1K: 0.06 },
+  "gpt-4-turbo":         { inputPer1K: 0.01,   outputPer1K: 0.03 },
+  "gpt-3.5-turbo":       { inputPer1K: 0.0005, outputPer1K: 0.0015 },
+  "o1":                  { inputPer1K: 0.015,  outputPer1K: 0.06 },
+  "o1-mini":             { inputPer1K: 0.003,  outputPer1K: 0.012 },
+  "o3":                  { inputPer1K: 0.01,   outputPer1K: 0.04 },
+  "o3-mini":             { inputPer1K: 0.0011, outputPer1K: 0.0044 },
+  "gpt-5":               { inputPer1K: 0.0025, outputPer1K: 0.01 },
+  "gpt-5-mini":          { inputPer1K: 0.00015, outputPer1K: 0.0006 },
+  // Google Gemini
+  "gemini-2.0-flash":    { inputPer1K: 0.0001, outputPer1K: 0.0004 },
+  "gemini-2.5-flash":    { inputPer1K: 0.00015, outputPer1K: 0.0006 },
+  "gemini-1.5-flash":    { inputPer1K: 0.000075, outputPer1K: 0.0003 },
+  "gemini-1.5-pro":      { inputPer1K: 0.00125, outputPer1K: 0.005 },
+  "gemini-2.0-pro":      { inputPer1K: 0.002,   outputPer1K: 0.005 },
+  // DeepSeek
+  "deepseek-chat":       { inputPer1K: 0.00027, outputPer1K: 0.0011 },
+  "deepseek-reasoner":   { inputPer1K: 0.00055, outputPer1K: 0.00219 },
+  // Meta Llama (via providers)
+  "llama-3.1-8b":        { inputPer1K: 0.00005, outputPer1K: 0.00005 },
+  "llama-3.1-70b":       { inputPer1K: 0.0003,  outputPer1K: 0.0003 },
+  "llama-3.1-405b":      { inputPer1K: 0.001,   outputPer1K: 0.001 },
+};
+
+/**
+ * Look up pricing for a model ID by matching against known patterns.
+ * Falls back to Claude Sonnet pricing if unknown.
+ */
+function getModelPricing(modelId: string): ModelPricing {
+  const normalized = modelId.toLowerCase();
+
+  for (const [key, price] of Object.entries(MODEL_PRICING)) {
+    if (normalized.includes(key)) {
+      return price;
+    }
+  }
+
+  // Try prefix-based matching (e.g. "anthropic/claude-sonnet-4-20250101")
+  for (const [key, price] of Object.entries(MODEL_PRICING)) {
+    const prefix = key.split("-").slice(0, 3).join("-");
+    if (prefix.length > 5 && normalized.includes(prefix)) {
+      return price;
+    }
+  }
+
+  // Provider prefix matching
+  if (normalized.includes("anthropic")) {
+    if (normalized.includes("opus")) return MODEL_PRICING["claude-3-opus"];
+    if (normalized.includes("haiku")) return MODEL_PRICING["claude-3-haiku"];
+    return MODEL_PRICING["claude-sonnet-4"];
+  }
+  if (normalized.includes("openai") || normalized.includes("azure")) {
+    if (normalized.includes("mini")) return MODEL_PRICING["gpt-4o-mini"];
+    if (normalized.includes("turbo")) return MODEL_PRICING["gpt-4-turbo"];
+    return MODEL_PRICING["gpt-4o"];
+  }
+  if (normalized.includes("google") || normalized.includes("gemini")) {
+    if (normalized.includes("pro")) return MODEL_PRICING["gemini-1.5-pro"];
+    return MODEL_PRICING["gemini-2.0-flash"];
+  }
+  if (normalized.includes("deepseek")) {
+    return MODEL_PRICING["deepseek-chat"];
+  }
+
+  // Default: Claude Sonnet pricing
+  return MODEL_PRICING["claude-sonnet-4"];
+}
+
+/**
+ * Calculate AI Credits consumed.
+ * 1 Credit = $0.01 USD.
+ */
+function calcCredits(modelId: string, inputTokens: number, outputTokens: number): number {
+  const pricing = getModelPricing(modelId);
+  const inputCost = (inputTokens / 1000) * pricing.inputPer1K;
+  const outputCost = (outputTokens / 1000) * pricing.outputPer1K;
+  const totalCost = inputCost + outputCost;
+  // 1 credit = $0.01
+  return totalCost / 0.01;
 }
 
 interface DetectionResult {
