@@ -25,6 +25,7 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" \
             dist/imaleagent-"${GITHUB_REF_NAME}".tar.gz \
             dist/imaleagent.tar.gz \
+            install.sh \
             install/install.sh \
             install/install.ps1 \
             install/install.bat \

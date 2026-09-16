@@ -52,11 +52,10 @@ echo "   install/"
 echo "   config/agent/"
 echo ""
 
-# Crear tarball con solo lo necesario
+# Crear tarball con solo lo necesario (rutas relativas a la raíz del proyecto)
 cd "${PROJECT_ROOT}"
 tar czf "${TARBALL}" \
-  --exclude="install/.DS_Store" \
-  --exclude="install/templates/.DS_Store" \
+  --exclude="*.DS_Store" \
   install/ \
   config/agent/
 
@@ -79,16 +78,12 @@ echo ""
 echo "🚀 Para publicar un release en GitHub:"
 echo "   1. Crea el tag:   git tag ${VERSION}"
 echo "   2. Sube el tag:   git push origin ${VERSION}"
-echo "   3. Crea un Release en GitHub y sube estos archivos:"
-echo "      - ${TARBALL_TAGGED}"
-echo "      - ${TARBALL}"
-echo "      - install/install.sh"
-echo "      - install/install.ps1"
-echo "      - install/install.bat"
+echo "   3. El workflow .github/workflows/release.yml crea el Release y sube:"
+echo "      - ${TARBALL_TAGGED}  (y su alias ${TARBALL})"
+echo "      - install.sh, install/install.sh, install/install.ps1, install/install.bat"
 echo ""
-echo "   Los usuarios podrán instalar con:"
+echo "   Esos assets son los que consumen los comandos documentados:"
 echo "   macOS/Linux/Git Bash:"
-echo "     curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | bash"
-echo "   Windows PowerShell:"
-echo "     iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.ps1 | iex"
+echo "     curl -fsSL https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/install.sh | bash"
+echo "   Windows: descarga releases/latest/download/imaleagent.tar.gz y ejecuta install\\install.ps1"
 echo ""

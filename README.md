@@ -41,7 +41,7 @@ Este repositorio evita que cada desarrollador tenga que configurar manualmente:
 - paquetes adicionales
 - MCPs necesarios
 - extensiones de routing
-- subagentes y chains genéricas reutilizables
+- subagentes y prompt workflows genéricos reutilizables
 - skills internas
 - tema visual y preferencias básicas
 - flujo recomendado para tareas de análisis, review y edición
@@ -70,7 +70,7 @@ Se copia `config/agent/*` a `~/.pi/agent`, incluyendo:
 - `APPEND_SYSTEM.md`
 - `extensions/`
 - `agents/`
-- `chains/`
+- `prompts/`
 - `skills/`
 - `themes/`
 
@@ -103,7 +103,7 @@ Responsabilidades:
 - activar MCPs
 - inyectar instrucciones de sistema adicionales
 - registrar extensiones y habilidades reutilizables
-- registrar subagentes y chains genéricas reutilizables
+- registrar subagentes y prompt workflows genéricos reutilizables
 - aplicar identidad visual IMALE
 
 ---
@@ -128,7 +128,7 @@ Responsabilidades:
 │       │   ├── imale-preset.ts       # selector interactivo de presets
 │       │   └── lib/shared-ui.ts      # helpers TUI compartidos
 │       ├── agents/                   # subagentes genéricos reutilizables
-│       ├── chains/                   # workflows genéricos reutilizables
+│       ├── prompts/                  # prompt workflows reutilizables
 │       ├── skills/                   # skills especializadas IMALE
 │       ├── prompts/                  # prompts de bienvenida
 │       ├── templates/                # plantillas de exploración de proyecto
@@ -144,6 +144,7 @@ Responsabilidades:
 │   ├── verify.*                      # validación post-instalación
 │   ├── uninstall.*                   # desinstalación
 │   ├── templates/                    # wrappers: comando `imaleagent` y alias `pi`
+│   ├── lib/                          # helpers Node: merge de config, manifiesto, desinstalación
 │   └── *.md                          # guías operativas
 └── scripts/
     └── build-release.sh              # genera release tarball para curl|sh
@@ -204,21 +205,26 @@ Requisitos mínimos:
 **macOS / Linux / Windows (Git Bash / WSL):**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | sh
+curl -fsSL https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/install.sh | sh
 ```
 
-**Windows PowerShell:**
+**Windows (PowerShell o CMD):**
+
+No hay one-liner: los instaladores de Windows se ejecutan desde el árbol del
+repositorio, porque `install\install.ps1` resuelve `config\agent` a partir de su
+propia ubicación (`$PSScriptRoot`). Descarga la release, descomprímela y ejecuta
+el instalador:
 
 ```powershell
+$tmp = Join-Path $env:TEMP "imaleagent"
+New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+iwr -useb https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/imaleagent.tar.gz -OutFile "$tmp\imaleagent.tar.gz"
+tar -xzf "$tmp\imaleagent.tar.gz" -C $tmp
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.ps1 | iex
+& "$tmp\install\install.ps1"
 ```
 
-**Windows CMD:**
-
-```bat
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.bat -o install.bat && install.bat
-```
+En CMD, tras descomprimir: `"%TEMP%\imaleagent\install\install.bat"`.
 
 #### Opción desde el repositorio clonado
 
@@ -302,7 +308,7 @@ Usa primero:
 - qué patrones locales existen ya en el repo
 
 ### Para subagentes y workflows genéricos
-Usa los agentes y chains genéricas instaladas globalmente cuando quieras delegar trabajo reutilizable entre proyectos.
+Usa los agentes y prompt workflows genéricos instalados globalmente cuando quieras delegar trabajo reutilizable entre proyectos.
 
 Ejemplos útiles:
 
@@ -318,8 +324,8 @@ Ejemplos útiles:
 Ejemplos de uso:
 
 ```text
-/run-chain generic-discovery -- entender esta parte del código
-/run-chain generic-implement-safe -- aplicar este cambio con validación
+/prompt-workflow generic-discovery entender esta parte del código
+/prompt-workflow generic-implement-safe aplicar este cambio con validación
 /run generic-parallel-review "Revisa este cambio con foco en regresiones, validación y mantenibilidad"
 ```
 
@@ -368,7 +374,7 @@ Responsabilidades principales:
 - clasificar el prompt en modos como `general`, `structural`, `review` y `debug-heavy`
 - inyectar reglas de routing en el system prompt
 - sugerir `code_intelligence_*` antes de hacer exploración amplia
-- sugerir subagentes y chains genéricas cuando encajan con la tarea
+- sugerir subagentes y prompt workflows genéricos cuando encajan con la tarea
 - advertir cuando conviene usar `context-mode`
 
 ---
@@ -411,11 +417,11 @@ Permite delegar o paralelizar trabajo con subagentes.
 - tareas multi-fase con coordinación
 - workflows genéricos reutilizables entre proyectos
 
-En esta configuración se complementa con agentes y chains genéricas instaladas desde `config/agent/agents/` y `config/agent/chains/`.
+En esta configuración se complementa con agentes y prompt workflows genéricos instalados desde `config/agent/agents/` y `config/agent/prompts/`.
 
-Set incluido actualmente (`config/agent/agents/` y `config/agent/chains/`):
+Set incluido actualmente (`config/agent/agents/` y `config/agent/prompts/`):
 - agentes: `generic-context-builder`, `generic-doc-writer`, `generic-fixer`, `generic-parallel-review`, `generic-planner`, `generic-reviewer`, `generic-worker`
-- chains: `generic-discovery`, `generic-fix-bug`, `generic-implement-safe`, `generic-research-and-plan`
+- prompt workflows: `generic-discovery`, `generic-fix-bug`, `generic-implement-safe`, `generic-research-and-plan`
 
 ### Skills IMALE
 El repo incorpora skills para tareas específicas (`config/agent/skills/`):
@@ -479,7 +485,7 @@ Qué valida cada una:
 
 Dentro de `install/` se mantiene solo la documentación operativa necesaria:
 
-- `install/README.md` → guía principal de instalación, routing y uso de subagentes/chains genéricas
+- `install/README.md` → guía principal de instalación, routing y uso de subagentes/prompt workflows genéricos
 - `install/SETUP_GUIDE.md` → instalación detallada, validación y troubleshooting
 
 ---
@@ -507,7 +513,7 @@ Si acabas de llegar al proyecto, el recorrido mínimo recomendado es:
 3. ejecuta el verificador correspondiente
 4. abre IMALEagent dentro de un proyecto real
 5. lanza `/router-status` y activa Code Intelligence
-6. revisa `install/README.md` para ver el uso de subagentes y chains genéricas
+6. revisa `install/README.md` para ver el uso de subagentes y prompt workflows genéricos
 7. prueba al menos uno de estos flujos: `generic-discovery` o `generic-implement-safe`
 
 Con eso deberías entender:

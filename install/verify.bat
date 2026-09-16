@@ -147,15 +147,20 @@ if %errorlevel% equ 0 (
         set /a checks_fail+=1
     )
 
-    set /a missing_generic_chains=0
-    if not exist "!AGENT_CONFIG_DIR!\chains\generic-discovery.chain.md" set /a missing_generic_chains+=1
-    if not exist "!AGENT_CONFIG_DIR!\chains\generic-implement-safe.chain.md" set /a missing_generic_chains+=1
-    if not exist "!AGENT_CONFIG_DIR!\chains\generic-research-and-plan.chain.md" set /a missing_generic_chains+=1
-    if !missing_generic_chains! equ 0 (
-        echo [OK] Chains genéricas: Instaladas en !AGENT_CONFIG_DIR!\chains
+    set /a missing_generic_prompts=0
+    if not exist "!AGENT_CONFIG_DIR!\prompts\generic-discovery.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\generic-fix-bug.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\generic-implement-safe.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\generic-research-and-plan.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\step-scout.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\step-planner.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\step-worker.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\step-reviewer.md" set /a missing_generic_prompts+=1
+    if !missing_generic_prompts! equ 0 (
+        echo [OK] Prompt workflows genéricos: Instalados en !AGENT_CONFIG_DIR!\prompts
         set /a checks_pass+=1
     ) else (
-        echo [FAIL] Chains genéricas: Faltan !missing_generic_chains! archivo^(s^) en !AGENT_CONFIG_DIR!\chains
+        echo [FAIL] Prompt workflows genéricos: Faltan !missing_generic_prompts! archivo^(s^) en !AGENT_CONFIG_DIR!\prompts
         set /a checks_fail+=1
     )
 ) else (

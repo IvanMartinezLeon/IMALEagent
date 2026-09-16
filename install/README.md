@@ -10,7 +10,7 @@ Este directorio contiene los scripts y documentos necesarios para dejar preparad
 - **code intelligence** para búsqueda semántica e impacto
 - **context-mode** para salidas grandes y contexto pesado
 - **ai-router** para routing híbrido según el tipo de tarea
-- subagentes y chains genéricas reutilizables entre proyectos
+- subagentes y prompt workflows genéricos reutilizables entre proyectos
 
 > Si vienes por primera vez al proyecto, puedes leer antes el `../README.md` de la raíz para entender la arquitectura completa del repositorio.
 
@@ -26,7 +26,7 @@ Este directorio contiene los scripts y documentos necesarios para dejar preparad
 - [Primer arranque](#primer-arranque)
 - [Flujo recomendado tras instalar](#flujo-recomendado-tras-instalar)
 - [Resumen del routing híbrido](#resumen-del-routing-híbrido)
-- [Subagentes y chains genéricas incluidas](#subagentes-y-chains-genéricas-incluidas)
+- [Subagentes y prompt workflows genéricos incluidos](#subagentes-y-prompt-workflows-genéricos-incluidos)
 - [Verificación](#verificación)
 - [Documentación relacionada](#documentación-relacionada)
 - [Notas operativas](#notas-operativas)
@@ -64,7 +64,7 @@ Y se copia al entorno del usuario incluyendo, entre otros elementos:
 - `APPEND_SYSTEM.md`
 - `extensions/`
 - `agents/`
-- `chains/`
+- `prompts/`
 - `skills/`
 - `themes/`
 
@@ -96,36 +96,37 @@ Instala IMALEagent sin necesidad de clonar el repositorio.
 ### macOS / Linux / Windows (Git Bash / WSL)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | sh
+curl -fsSL https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/install.sh | sh
 ```
 
 > También funciona en Windows si usas **Git Bash** o **WSL**.
 
-### Windows PowerShell
+### Windows (PowerShell o CMD)
+
+No hay comando único: los instaladores de Windows se ejecutan desde el árbol del
+repositorio, porque `install\install.ps1` resuelve `config\agent` a partir de su
+propia ubicación (`$PSScriptRoot`). Descarga la release y descomprímela:
 
 ```powershell
-# Ejecutar como Administrador (recomendado) o usuario
+$tmp = Join-Path $env:TEMP "imaleagent"
+New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+iwr -useb https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/imaleagent.tar.gz -OutFile "$tmp\imaleagent.tar.gz"
+tar -xzf "$tmp\imaleagent.tar.gz" -C $tmp
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.ps1 | iex
+& "$tmp\install\install.ps1"
 ```
 
-### Windows CMD
-
-```bat
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.bat -o install.bat && install.bat
-```
+En CMD, tras descomprimir: `"%TEMP%\imaleagent\install\install.bat"`.
 
 ### Instalar una versión específica
 
 ```bash
 # Por variable de entorno (Unix)
-INSTALL_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | sh
+INSTALL_VERSION=v1.0.0 curl -fsSL https://github.com/IvanMartinezLeon/IMALEagent/releases/download/v1.0.0/install.sh | sh
 ```
 
-```powershell
-# Versión específica en PowerShell
-$env:INSTALL_VERSION='v1.0.0'; iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.ps1 | iex
-```
+En Windows, sustituye `releases/latest/download/imaleagent.tar.gz` por
+`releases/download/v1.0.0/imaleagent.tar.gz` en el bloque anterior.
 
 ---
 
@@ -242,8 +243,8 @@ Casos típicos:
 Ejemplos:
 
 ```text
-/run-chain generic-discovery -- entender esta parte del código
-/run-chain generic-implement-safe -- aplicar este cambio con validación
+/prompt-workflow generic-discovery entender esta parte del código
+/prompt-workflow generic-implement-safe aplicar este cambio con validación
 /run generic-parallel-review "Revisa este cambio con foco en corrección, cobertura de tests y simplicidad"
 ```
 
@@ -334,12 +335,12 @@ La idea no es sustituir las tools nativas, sino ordenar el flujo:
 
 ---
 
-## Subagentes y chains genéricas incluidas
+## Subagentes y prompt workflows genéricos incluidos
 
 Esta configuración instala subagentes y además copia una capa genérica reutilizable para cualquier proyecto en:
 
 - `~/.pi/agent/agents/`
-- `~/.pi/agent/chains/`
+- `~/.pi/agent/prompts/`
 
 ### Subagentes genéricos
 
@@ -351,7 +352,7 @@ Esta configuración instala subagentes y además copia una capa genérica reutil
 - `generic-parallel-review` → orquesta revisión paralela con varios ángulos y devuelve una síntesis única
 - `generic-doc-writer` → 🆕 escribe y mejora documentación técnica, READMEs y guías
 
-### Chains genéricas
+### Prompt workflows genéricos
 
 - `generic-discovery` → `scout` + `generic-context-builder`
 - `generic-implement-safe` → `scout` + `generic-planner` + `generic-worker` + `generic-reviewer`
@@ -403,7 +404,7 @@ Cada subagente puede usar un modelo diferente al del agente principal. Esto perm
 }
 ```
 
-También se puede configurar por paso en una chain o inline al lanzar un agente:
+También se puede configurar por paso en un prompt workflow o inline al lanzar un agente:
 
 ```text
 /run reviewer[model=anthropic/claude-sonnet-4] "Revisa este código"
@@ -424,7 +425,7 @@ También se puede configurar por paso en una chain o inline al lanzar un agente:
 Ejemplo:
 
 ```text
-/run-chain generic-discovery -- entender el flujo de autenticación
+/prompt-workflow generic-discovery entender el flujo de autenticación
 ```
 
 #### `generic-implement-safe`
@@ -433,7 +434,7 @@ Ejemplo:
 Ejemplo:
 
 ```text
-/run-chain generic-implement-safe -- aplicar este refactor siguiendo los patrones existentes
+/prompt-workflow generic-implement-safe aplicar este refactor siguiendo los patrones existentes
 ```
 
 #### `generic-fix-bug`
@@ -442,7 +443,7 @@ Ejemplo:
 Ejemplo:
 
 ```text
-/run-chain generic-fix-bug -- el login falla con 401 aunque las credenciales son correctas
+/prompt-workflow generic-fix-bug el login falla con 401 aunque las credenciales son correctas
 ```
 
 #### `generic-research-and-plan`
@@ -451,7 +452,7 @@ Ejemplo:
 Ejemplo:
 
 ```text
-/run-chain generic-research-and-plan -- evaluar cómo integrar esta librería en el proyecto
+/prompt-workflow generic-research-and-plan evaluar cómo integrar esta librería en el proyecto
 ```
 
 #### `generic-reviewer`
@@ -488,7 +489,7 @@ La extensión `ai-router` no lanza estos subagentes automáticamente, pero ahora
 - revisión profunda
 - investigación con referencias externas
 
-La activación sigue siendo explícita: tú decides cuándo ejecutar `/run`, `/run-chain` o pedirlo en lenguaje natural.
+La activación sigue siendo explícita: tú decides cuándo ejecutar `/run`, `/prompt-workflow` o pedirlo en lenguaje natural.
 
 ---
 
@@ -524,7 +525,7 @@ Las verificaciones comprueban, entre otros puntos:
 - presencia de `context-mode` en `~/.pi/agent/mcp.json`
 - disponibilidad de la extensión `ai-router`
 - presencia de los subagentes genéricos instalados en `~/.pi/agent/agents`
-- presencia de las chains genéricas instaladas en `~/.pi/agent/chains`
+- presencia de los prompt workflows genéricos instalados en `~/.pi/agent/prompts`
 
 ---
 
@@ -532,7 +533,7 @@ Las verificaciones comprueban, entre otros puntos:
 
 ### Dentro de `install/`
 
-- `README.md` → guía principal de instalación, routing y uso de subagentes/chains genéricas
+- `README.md` → guía principal de instalación, routing y uso de subagentes/prompt workflows genéricos
 - `SETUP_GUIDE.md` → guía detallada, validación y troubleshooting
 
 ### Referencias externas
@@ -598,7 +599,7 @@ gh release create v1.2.3 \
 Sin releases, apuntando directamente a la rama `release`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | sh
+curl -fsSL https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/install.sh | sh
 ```
 
 > ⚠ **RAW no está pensado para producción.** Para instalaciones reproducibles, usa siempre un tag versionado.

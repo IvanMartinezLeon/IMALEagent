@@ -168,9 +168,9 @@ Debe existir, como mínimo:
 - `~/.pi/agent/agents/generic-worker.md`
 - `~/.pi/agent/agents/generic-reviewer.md`
 - `~/.pi/agent/agents/generic-parallel-review.md`
-- `~/.pi/agent/chains/generic-discovery.chain.md`
-- `~/.pi/agent/chains/generic-implement-safe.chain.md`
-- `~/.pi/agent/chains/generic-research-and-plan.chain.md`
+- `~/.pi/agent/prompts/generic-discovery.md`
+- `~/.pi/agent/prompts/generic-implement-safe.md`
+- `~/.pi/agent/prompts/generic-research-and-plan.md`
 
 ### 4. Validación automática con scripts
 
@@ -323,7 +323,7 @@ Causa probable:
 
 Acción:
 1. revisa el contenido de `~/.pi/agent`
-2. confirma que existen `settings.json`, `mcp.json`, `extensions/`, `agents/`, `chains/`, `skills/` y `themes/`, y que dentro de `agents/` y `chains/` están los artefactos genéricos instalados por IMALEagent
+2. confirma que existen `settings.json`, `mcp.json`, `extensions/`, `agents/`, `prompts/`, `skills/` y `themes/`, y que dentro de `agents/` y `prompts/` están los artefactos genéricos instalados por IMALEagent
 3. reejecuta el instalador automático si falta algo
 
 ---
@@ -348,9 +348,9 @@ Antes de pedir ayuda, recopila esta información:
 - existencia de `~/.pi/agent/agents/generic-worker.md`
 - existencia de `~/.pi/agent/agents/generic-reviewer.md`
 - existencia de `~/.pi/agent/agents/generic-parallel-review.md`
-- existencia de `~/.pi/agent/chains/generic-discovery.chain.md`
-- existencia de `~/.pi/agent/chains/generic-implement-safe.chain.md`
-- existencia de `~/.pi/agent/chains/generic-research-and-plan.chain.md`
+- existencia de `~/.pi/agent/prompts/generic-discovery.md`
+- existencia de `~/.pi/agent/prompts/generic-implement-safe.md`
+- existencia de `~/.pi/agent/prompts/generic-research-and-plan.md`
 
 ### Una vez arrancado
 - resultado de `/router-status`

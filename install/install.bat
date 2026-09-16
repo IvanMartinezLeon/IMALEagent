@@ -36,6 +36,11 @@ set "TEMPLATE_DIR=%SCRIPT_DIR%templates"
 set "AGENT_CONFIG_DIR=%USERPROFILE%\.pi\agent"
 set "AGENT_BIN_DIR=%AGENT_CONFIG_DIR%\bin"
 set "WRAPPER_PATH=%AGENT_BIN_DIR%\pi.cmd"
+set "MERGE_HELPER=%SCRIPT_DIR%lib\merge-config.mjs"
+set "MANIFEST_HELPER=%SCRIPT_DIR%lib\write-manifest.mjs"
+set "MANIFEST_PATH=%AGENT_CONFIG_DIR%\.imale-manifest"
+set "BACKUP_DIR=%AGENT_CONFIG_DIR%\.backup-%DATE:~-4%%DATE:~3,2%%DATE:~0,2%-%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%"
+set "BACKUP_DIR=%BACKUP_DIR: =0%"
 
 echo Instalando IMALEagent...
 echo.
@@ -54,11 +59,28 @@ if not exist "%CONFIG_SOURCE_DIR%" (
 )
 
 if not exist "%AGENT_CONFIG_DIR%" mkdir "%AGENT_CONFIG_DIR%"
+call :BackupExistingConfig
 xcopy "%CONFIG_SOURCE_DIR%\*" "%AGENT_CONFIG_DIR%\" /E /I /Y >nul
 if %errorlevel% geq 4 (
     echo [FAIL] Could not copy configuration files
     pause
     exit /b 1
+)
+if exist "%MERGE_HELPER%" (
+    call :MergeJsonConfig "settings.json"
+    call :MergeJsonConfig "mcp.json"
+) else (
+    echo [WARN] No se encontro %MERGE_HELPER%; settings.json y mcp.json se sobrescriben sin fusionar.
+)
+if exist "%MANIFEST_HELPER%" (
+    call node "%MANIFEST_HELPER%" "%CONFIG_SOURCE_DIR%" "%MANIFEST_PATH%" "bin/pi.cmd" "bin/imaleagent.cmd" >nul
+    if errorlevel 1 (
+        echo [WARN] No se pudo escribir el manifiesto de instalacion.
+    ) else (
+        echo [OK] Manifiesto de instalacion: %MANIFEST_PATH%
+    )
+) else (
+    echo [WARN] No se encontro %MANIFEST_HELPER%; el desinstalador no eliminara con precision.
 )
 echo [OK] Configuración copiada en %AGENT_CONFIG_DIR%
 
@@ -170,3 +192,46 @@ echo Config: %AGENT_CONFIG_DIR%
 echo.
 
 pause
+exit /b 0
+
+REM ── Subrutinas ──────────────────────────────────────────────────
+
+:BackupExistingConfig
+set "BACKUP_COUNT=0"
+for /f "delims=" %%i in ('dir /b /a "%CONFIG_SOURCE_DIR%" 2^>nul') do (
+    if exist "%AGENT_CONFIG_DIR%\%%i" (
+        if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
+        xcopy "%AGENT_CONFIG_DIR%\%%i" "%BACKUP_DIR%\%%i" /E /I /Y >nul 2>&1
+        set /a BACKUP_COUNT+=1
+    )
+)
+if %BACKUP_COUNT% gtr 0 (
+    echo [OK] Copia de seguridad de la config previa: %BACKUP_DIR% ^(%BACKUP_COUNT% elemento^(s^)^)
+) else (
+    if exist "%BACKUP_DIR%" rd /s /q "%BACKUP_DIR%"
+)
+exit /b 0
+
+REM Fusiona un JSON del repo con el previo del usuario en lugar de sobrescribirlo.
+REM Imprescindible para no perder packages, provider/model ni MCPs propios.
+:MergeJsonConfig
+set "MERGE_REL=%~1"
+set "MERGE_INCOMING=%CONFIG_SOURCE_DIR%\%MERGE_REL%"
+set "MERGE_PREVIOUS=%BACKUP_DIR%\%MERGE_REL%"
+set "MERGE_TARGET=%AGENT_CONFIG_DIR%\%MERGE_REL%"
+if not exist "%MERGE_INCOMING%" exit /b 0
+if not exist "%MERGE_PREVIOUS%" exit /b 0
+set "MERGE_OUT=%TEMP%\imale-merge-%RANDOM%-%RANDOM%.json"
+call node "%MERGE_HELPER%" "%MERGE_INCOMING%" "%MERGE_PREVIOUS%" "%MERGE_OUT%"
+if errorlevel 1 (
+    if exist "%MERGE_OUT%" del /f /q "%MERGE_OUT%"
+    echo [WARN] %MERGE_REL%: no se pudo fusionar, se instalo la version del repo ^(copia previa: %MERGE_PREVIOUS%^)
+    exit /b 0
+)
+move /y "%MERGE_OUT%" "%MERGE_TARGET%" >nul
+if errorlevel 1 (
+    echo [WARN] %MERGE_REL%: no se pudo escribir %MERGE_TARGET% ^(version fusionada en %MERGE_OUT%^)
+    exit /b 0
+)
+echo [OK] %MERGE_REL% fusionado con la configuracion previa
+exit /b 0

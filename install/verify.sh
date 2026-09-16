@@ -149,22 +149,27 @@ if command -v pi &>/dev/null; then
 		((CHECKS_FAILED++))
 	fi
 
-	GENERIC_CHAINS=(
-		"generic-discovery.chain.md"
-		"generic-implement-safe.chain.md"
-		"generic-research-and-plan.chain.md"
+	GENERIC_PROMPTS=(
+		"generic-discovery.md"
+		"generic-fix-bug.md"
+		"generic-implement-safe.md"
+		"generic-research-and-plan.md"
+		"step-scout.md"
+		"step-planner.md"
+		"step-worker.md"
+		"step-reviewer.md"
 	)
-	MISSING_GENERIC_CHAINS=0
-	for chain_file in "${GENERIC_CHAINS[@]}"; do
-		if [ ! -f "${AGENT_CONFIG_DIR}/chains/${chain_file}" ]; then
-			((MISSING_GENERIC_CHAINS++))
+	MISSING_GENERIC_PROMPTS=0
+	for prompt_file in "${GENERIC_PROMPTS[@]}"; do
+		if [ ! -f "${AGENT_CONFIG_DIR}/prompts/${prompt_file}" ]; then
+			((MISSING_GENERIC_PROMPTS++))
 		fi
 	done
-	if [ ${MISSING_GENERIC_CHAINS} -eq 0 ]; then
-		echo -e "${GREEN}✓ Chains genéricas${NC}: Instaladas en ${AGENT_CONFIG_DIR}/chains"
+	if [ ${MISSING_GENERIC_PROMPTS} -eq 0 ]; then
+		echo -e "${GREEN}✓ Prompt workflows genéricos${NC}: Instalados en ${AGENT_CONFIG_DIR}/prompts"
 		((CHECKS_PASSED++))
 	else
-		echo -e "${RED}✗ Chains genéricas${NC}: Faltan ${MISSING_GENERIC_CHAINS} archivo(s) en ${AGENT_CONFIG_DIR}/chains"
+		echo -e "${RED}✗ Prompt workflows genéricos${NC}: Faltan ${MISSING_GENERIC_PROMPTS} archivo(s) en ${AGENT_CONFIG_DIR}/prompts"
 		((CHECKS_FAILED++))
 	fi
 else

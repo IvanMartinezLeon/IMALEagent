@@ -139,17 +139,22 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         $global:checksFail++
     }
 
-    $genericChains = @(
-        (Join-Path $agentConfigDir "chains\generic-discovery.chain.md"),
-        (Join-Path $agentConfigDir "chains\generic-implement-safe.chain.md"),
-        (Join-Path $agentConfigDir "chains\generic-research-and-plan.chain.md")
+    $genericPrompts = @(
+        (Join-Path $agentConfigDir "prompts\generic-discovery.md"),
+        (Join-Path $agentConfigDir "prompts\generic-fix-bug.md"),
+        (Join-Path $agentConfigDir "prompts\generic-implement-safe.md"),
+        (Join-Path $agentConfigDir "prompts\generic-research-and-plan.md"),
+        (Join-Path $agentConfigDir "prompts\step-scout.md"),
+        (Join-Path $agentConfigDir "prompts\step-planner.md"),
+        (Join-Path $agentConfigDir "prompts\step-worker.md"),
+        (Join-Path $agentConfigDir "prompts\step-reviewer.md")
     )
-    $missingGenericChains = ($genericChains | Where-Object { -not (Test-Path $_) }).Count
-    if ($missingGenericChains -eq 0) {
-        Write-Host "✓ Chains genéricas : Instaladas en $agentConfigDir\chains" -ForegroundColor $Green
+    $missingGenericPrompts = ($genericPrompts | Where-Object { -not (Test-Path $_) }).Count
+    if ($missingGenericPrompts -eq 0) {
+        Write-Host "✓ Prompt workflows genéricos : Instalados en $agentConfigDir\prompts" -ForegroundColor $Green
         $global:checksPass++
     } else {
-        Write-Host "✗ Chains genéricas : Faltan $missingGenericChains archivo(s) en $agentConfigDir\chains" -ForegroundColor $Red
+        Write-Host "✗ Prompt workflows genéricos : Faltan $missingGenericPrompts archivo(s) en $agentConfigDir\prompts" -ForegroundColor $Red
         $global:checksFail++
     }
 } else {
