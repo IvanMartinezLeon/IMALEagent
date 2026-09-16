@@ -35,54 +35,15 @@ TEMPLATE_DIR="${SCRIPT_DIR}/templates"
 AGENT_CONFIG_DIR="${HOME}/.pi/agent"
 AGENT_BIN_DIR="${AGENT_CONFIG_DIR}/bin"
 WRAPPER_PATH="${AGENT_BIN_DIR}/pi"
-MERGE_HELPER="${SCRIPT_DIR}/lib/merge-config.mjs"
-MANIFEST_HELPER="${SCRIPT_DIR}/lib/write-manifest.mjs"
-MANIFEST="${AGENT_CONFIG_DIR}/.imale-manifest"
-BACKUP_DIR="${AGENT_CONFIG_DIR}/.backup-$(date +%Y%m%d-%H%M%S)"
-
-# Copia de seguridad de los elementos de configuración que van a ser sobrescritos.
-backup_existing_config() {
-	local copied=0 rel
-	while IFS= read -r rel; do
-		if [ ! -e "${AGENT_CONFIG_DIR}/${rel}" ]; then
-			continue
-		fi
-		mkdir -p "${BACKUP_DIR}"
-		cp -R "${AGENT_CONFIG_DIR}/${rel}" "${BACKUP_DIR}/${rel}"
-		copied=$((copied + 1))
-	done < <(cd "${CONFIG_SOURCE_DIR}" && find . -mindepth 1 -maxdepth 1 -exec basename {} \;)
-
-	if [ "${copied}" -gt 0 ]; then
-		echo -e "${GREEN}✓ Copia de seguridad de la config previa${NC}: ${BACKUP_DIR} (${copied} elemento(s))"
-		return 0
-	fi
-
-	rmdir "${BACKUP_DIR}" 2>/dev/null || true
-}
-
-# Fusiona un JSON del repo con el previo del usuario en lugar de sobrescribirlo.
-# Imprescindible para no perder `packages`, provider/model ni MCPs propios.
-merge_json_file() {
-	local rel="${1}"
-	local incoming="${CONFIG_SOURCE_DIR}/${rel}"
-	local previous="${BACKUP_DIR}/${rel}"
-	local target="${AGENT_CONFIG_DIR}/${rel}"
-	local merged=""
-
-	if [ ! -f "${incoming}" ] || [ ! -f "${previous}" ]; then
-		return 0
-	fi
-
-	merged="$(mktemp)"
-	if node "${MERGE_HELPER}" "${incoming}" "${previous}" "${merged}" && [ -s "${merged}" ]; then
-		mv "${merged}" "${target}"
-		echo -e "${GREEN}✓ ${rel} fusionado${NC} con la configuración previa"
-	else
-		rm -f "${merged}"
-		echo -e "${YELLOW}⚠ ${rel}${NC}: no se pudo fusionar, se ha instalado la versión del repo"
-		echo -e "${YELLOW}  Copia previa:${NC} ${previous}"
-	fi
-}
+# La etapa de configuración (backup + copia + merge + manifiesto) vive en
+# lib/config-stage.sh para poder probarla de forma aislada.
+CONFIG_STAGE="${SCRIPT_DIR}/lib/config-stage.sh"
+if [ ! -f "${CONFIG_STAGE}" ]; then
+	echo -e "${RED}✗ Error: No se encontró ${CONFIG_STAGE}${NC}"
+	exit 1
+fi
+# shellcheck source=lib/config-stage.sh
+. "${CONFIG_STAGE}"
 
 append_path_block() {
 	local rc_file="$1"
@@ -169,21 +130,7 @@ if ! npm install -g --loglevel=error --ignore-scripts @earendil-works/pi-coding-
 fi
 
 echo -e "${YELLOW}Copiando la configuración de IMALEagent...${NC}"
-if [ ! -d "${CONFIG_SOURCE_DIR}" ]; then
-	echo -e "${RED}✗ Error: No se encontró la carpeta de configuración en ${CONFIG_SOURCE_DIR}${NC}"
-	exit 1
-fi
-
-mkdir -p "${AGENT_CONFIG_DIR}"
-backup_existing_config
-cp -R "${CONFIG_SOURCE_DIR}/." "${AGENT_CONFIG_DIR}/"
-merge_json_file "settings.json"
-merge_json_file "mcp.json"
-if [ -f "${MANIFEST_HELPER}" ] && node "${MANIFEST_HELPER}" "${CONFIG_SOURCE_DIR}" "${MANIFEST}" "bin/pi" "bin/imaleagent" >/dev/null; then
-	echo -e "${GREEN}✓ Manifiesto de instalación${NC}: ${MANIFEST}"
-else
-	echo -e "${YELLOW}⚠ No se pudo escribir el manifiesto; el desinstalador no eliminará con precisión${NC}"
-fi
+install_config_stage "bin/pi" "bin/imaleagent"
 echo -e "${GREEN}✓ Configuración copiada ${NC}"
 echo -e "${GREEN}✓ Extensiones del agente instaladas${NC} (ai-router, imale-header, imale-preset)"
 verify_subagent_config

@@ -1,0 +1,121 @@
+name: Validate
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Bash syntax
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(install.sh scripts/*.sh install/*.sh install/lib/*.sh install/templates/*.sh)
+          printf 'Comprobando %d script(s)\n' "${#files[@]}"
+          for f in "${files[@]}"; do
+            bash -n "$f"
+            echo "  ok $f"
+          done
+
+      # Informativo, no bloqueante: la severidad no está validada todavía contra
+      # estos scripts, así que no debe poder poner el CI en rojo. Cuando alguien
+      # ejecute ShellCheck en local y confirme que pasa limpio, quitar
+      # `continue-on-error` y subir la severidad a `warning`.
+      - name: ShellCheck (informational)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          if ! command -v shellcheck >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq shellcheck
+          fi
+          shellcheck --version
+          files=(install.sh scripts/*.sh install/*.sh install/lib/*.sh install/templates/*.sh)
+          shellcheck -S error "${files[@]}"
+
+      - name: JSON config is valid
+        run: |
+          set -euo pipefail
+          for f in config/agent/settings.json \
+                   config/agent/mcp.json \
+                   config/agent/presets.json \
+                   config/agent/themes/imale-theme.json; do
+            node -e "JSON.parse(require('node:fs').readFileSync(process.argv[1], 'utf8'))" "$f"
+            echo "  ok $f"
+          done
+
+      - name: TypeScript extension syntax
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(config/agent/extensions/*.ts config/agent/extensions/lib/*.ts)
+          for f in "${files[@]}"; do
+            node --experimental-strip-types --check "$f"
+            echo "  ok $f"
+          done
+
+      - name: Node helper syntax
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for f in install/lib/*.mjs; do
+            node --check "$f"
+            echo "  ok $f"
+          done
+
+      - name: Prompt workflows declare a resolvable chain
+        run: |
+          set -euo pipefail
+          cd config/agent/prompts
+          status=0
+          for file in *.md; do
+            [ "$file" = "welcome.md" ] && continue
+            chain="$(sed -n 's/^chain:[[:space:]]*//p' "$file" | head -1)"
+            [ -n "$chain" ] || continue
+            # `chain:` de /prompt-workflow separa pasos con " -> " y cada paso
+            # debe ser otro fichero de plantilla existente.
+            IFS=' ' read -ra parts <<<"${chain//->/ }"
+            for step in "${parts[@]}"; do
+              [ -z "$step" ] && continue
+              if [ ! -f "${step}.md" ]; then
+                echo "  ✗ ${file}: paso desconocido '${step}'"
+                status=1
+              fi
+            done
+          done
+          [ "$status" -eq 0 ] && echo "  ok todas las cadenas resuelven a plantillas existentes"
+          exit "$status"
+
+      - name: Install/uninstall E2E (isolated sandbox)
+        run: bash scripts/test-install.sh
+
+      - name: Release tarball builds
+        run: |
+          set -euo pipefail
+          bash scripts/build-release.sh v0.0.0-ci
+          tar tzf dist/imaleagent.tar.gz >/dev/null
+          if tar tzf dist/imaleagent.tar.gz | grep -q 'DS_Store'; then
+            echo "✗ el tarball contiene .DS_Store" >&2
+            exit 1
+          fi
+          echo "  ok tarball generado y sin .DS_Store"
