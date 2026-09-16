@@ -67,12 +67,15 @@ Se copia `config/agent/*` a `~/.pi/agent`, incluyendo:
 
 - `settings.json`
 - `mcp.json`
+- `presets.json`
 - `APPEND_SYSTEM.md`
 - `extensions/`
 - `agents/`
 - `prompts/`
 - `skills/`
 - `themes/`
+- `templates/`
+- `examples/`
 
 ### Integraciones operativas
 - `context-mode` como MCP lazy-loaded mediante el binario global `context-mode`
@@ -151,9 +154,15 @@ Responsabilidades:
 │   ├── verify.*                      # validación post-instalación
 │   ├── uninstall.*                   # desinstalación
 │   ├── templates/                    # wrappers y plantillas auxiliares
+│   ├── lib/                          # helpers Node: merge, manifiesto, desinstalación
+│   │   ├── config-stage.sh
+│   │   ├── merge-config.mjs
+│   │   ├── write-manifest.mjs
+│   │   └── uninstall-config.mjs
 │   └── *.md                          # guías operativas
 ├── scripts/
-│   └── build-release.sh              # genera release tarball para curl|sh
+│   ├── build-release.sh              # genera release tarball para curl|sh
+│   └── test-install.sh               # test E2E de instalación/desinstalación
 ```
 
 ---
@@ -335,11 +344,15 @@ Ejemplos útiles:
 - `generic-context-builder` → construir contexto accionable antes de planificar
 - `generic-planner` → convertir contexto en un plan mínimo
 - `generic-worker` → implementar como single writer
+- `generic-fixer` → arreglar bugs rápido sin planificador
 - `generic-reviewer` → revisar un diff, plan o implementación
 - `generic-parallel-review` → revisión paralela con varios ángulos
+- `generic-doc-writer` → escribir o mejorar documentación técnica
 - `generic-discovery` → discovery antes de editar
 - `generic-implement-safe` → scout + plan + implementación + review
+- `generic-fix-bug` → scout + fixer + reviewer (bugs rápidos)
 - `generic-research-and-plan` → referencias externas + contexto local + plan
+- `spec-mobile` → arranque rápido de especificación mobile
 
 Ejemplos de uso:
 
@@ -397,6 +410,12 @@ Responsabilidades principales:
 - sugerir subagentes y prompt workflows genéricos cuando encajan con la tarea
 - advertir cuando conviene usar `context-mode`
 
+### `imale-header.ts`
+Personalización visual y de comportamiento de la UI (branding IMALE).
+
+### `imale-preset.ts`
+Selector interactivo de presets vía el comando `imale:preset`.
+
 ---
 
 ## Componentes técnicos clave
@@ -435,15 +454,19 @@ Permite delegar o paralelizar trabajo con subagentes.
 En esta configuración se complementa con agentes y prompt workflows genéricos instalados desde `config/agent/agents/` y `config/agent/prompts/`.
 
 Set incluido actualmente (`config/agent/agents/` y `config/agent/prompts/`):
-- agentes: `generic-context-builder`, `generic-doc-writer`, `generic-fixer`, `generic-parallel-review`, `generic-planner`, `generic-reviewer`, `generic-worker`
-- prompt workflows: `generic-discovery`, `generic-fix-bug`, `generic-implement-safe`, `generic-research-and-plan`
+- **agentes** (7): `generic-context-builder`, `generic-doc-writer`, `generic-fixer`, `generic-parallel-review`, `generic-planner`, `generic-reviewer`, `generic-worker`
+- **prompt workflows** (5): `generic-discovery`, `generic-fix-bug`, `generic-implement-safe`, `generic-research-and-plan`, `spec-mobile`
+- **step workflows** (7): `step-context-builder`, `step-fixer`, `step-planner`, `step-research`, `step-reviewer`, `step-scout`, `step-worker`
+- **ejemplos** (1): `exploration-flutter-keko.md`
 
 ### Skills IMALE
 El repo incorpora skills para tareas específicas (`config/agent/skills/`):
 - `api-design`
 - `architecture`
+- `dart-guidelines` (móvil)
 - `documentation`
 - `fix`
+- `flutter-guidelines` (móvil)
 - `git`
 - `learn`
 - `review`
@@ -452,8 +475,6 @@ El repo incorpora skills para tareas específicas (`config/agent/skills/`):
 - `sync`
 - `testing`
 - `workflow-coordination`
-- `flutter-guidelines` (móvil)
-- `dart-guidelines` (móvil)
 
 ---
 

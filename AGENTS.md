@@ -11,7 +11,8 @@ Si aplicas cambios sobre proyectos de terceros usando esta configuración, las r
 
 Lo que produce:
 
-- un binario base (`@earendil-works/pi-coding-agent`) + paquetes (`pi-subagents`, adaptador MCP, `context-mode`),
+- dos instalaciones globales npm: `@earendil-works/pi-coding-agent` (el binario `pi`) y `context-mode` (binario que lanza el servidor MCP),
+- tres paquetes Pi: `pi-subagents`, `pi-mcp-adapter` y `context-mode` (extensión + skills `ctx-*`),
 - una configuración de agente homogénea copiada a `~/.pi/agent`,
 - el comando `IMALEagent` (con `pi` como alias),
 - scripts de verificación y desinstalación multiplataforma.
@@ -62,7 +63,7 @@ Al tocar `install/lib/config-stage.sh` o `install/lib/uninstall-config.mjs`, **`
 ├── install.sh                     # entry point curl|sh; detecta repo local y delega
 ├── config/agent/                  # ← FUENTE DE VERDAD de la configuración instalada
 │   ├── settings.json              # tema, compaction, overrides de subagentes
-│   ├── mcp.json                   # servidores MCP (context-mode lazy)
+│   ├── mcp.json                   # servidores MCP (context-mode lazy vía binario global)
 │   ├── presets.json               # presets del comando imale:preset
 │   ├── APPEND_SYSTEM.md           # reglas de sistema inyectadas (committeado)
 │   ├── GENERIC_RULES.md, BEST_PRACTICES.md, EXPLORATION_STRATEGY.md,
@@ -98,9 +99,13 @@ Al tocar `install/lib/config-stage.sh` o `install/lib/uninstall-config.mjs`, **`
 ## 4. Cómo funciona la instalación (modelo mental)
 
 1. `install.sh` (raíz) detecta Windows nativo y aborta con instrucciones; en macOS/Linux/Git Bash/WSL delega en `install/install.sh`.
-2. `install/install.sh` instala los paquetes y llama a `install_config_stage()`.
-3. `config-stage.sh`: **backup** de lo que va a sobrescribir → `cp -R config/agent/. ~/.pi/agent/` → **merge** de `settings.json` y `mcp.json` → **manifiesto**.
-4. `uninstall` borra **exactamente** lo que lista el manifiesto (`.imale-manifest`), nunca directorios completos.
+2. `install/install.sh`, en este orden:
+   1. `npm install -g --ignore-scripts @earendil-works/pi-coding-agent` (el binario `pi`).
+   2. `npm install -g context-mode`, **sin** `--ignore-scripts`: `better-sqlite3` necesita su prebuild y el paquete ejecuta su propio `postinstall`. Aporta el binario `context-mode` que lanza el servidor MCP.
+   3. `install_config_stage()` (ver `install/lib/config-stage.sh`): **backup** de lo que va a sobrescribir → `cp -R config/agent/. ~/.pi/agent/` → **merge** de `settings.json` y `mcp.json` → **manifiesto** `.imale-manifest`.
+   4. `pi install npm:pi-subagents`, `npm:pi-mcp-adapter` y `npm:context-mode` (este último aporta la extensión Pi y las skills `ctx-*`).
+   5. Wrappers `bin/pi` y `bin/imaleagent` + alta del directorio en el PATH del shell.
+3. `uninstall` borra **exactamente** lo que lista el manifiesto (`.imale-manifest`), nunca directorios completos, y desinstala los paquetes que IMALE instaló (`pi remove` + `npm uninstall -g context-mode`).
 
 Invariantes que no se pueden romper:
 
@@ -108,6 +113,7 @@ Invariantes que no se pueden romper:
 - **El manifiesto solo registra ficheros, nunca directorios.** Borrar `agents/` entero se llevaría por delante agentes propios del usuario.
 - **La instalación es idempotente y re-ejecutable**; la copia previa queda en `.backup-<timestamp>`.
 - **No dupliques la lista de ficheros instalados** en los tres lenguajes (sh/ps1/bat). La genera `write-manifest.mjs`; los instaladores la consumen.
+- **La lista de paquetes sí está replicada a mano, y hay que sincronizarla en los cuatro grupos**: `install.{sh,ps1,bat}`, `verify.{sh,ps1,bat}`, `uninstall.{sh,ps1,bat}` y `PACKAGE_DIRS` de `install/lib/uninstall-config.mjs`, más los tres documentos. Al añadir o quitar un paquete, todo eso va en el mismo cambio.
 - Si falta un helper en `install/lib/`, el instalador deja el desinstalador ciego: es un **error bloqueante**, no un warning.
 
 ---
@@ -144,7 +150,6 @@ Invariantes que no se pueden romper:
 ### JSON de configuración (`config/agent/*.json`)
 - JSON estricto (sin comentarios ni trailing commas). El CI lo valida.
 - `settings.json`, `mcp.json` y `presets.json` son **fusionables**: documenta cualquier clave nueva que el merge deba respetar, porque el usuario puede tener la suya. Caso conocido: `mcpServers.context-mode` declara `args: []` a propósito, porque el merge conserva las claves ausentes en el overlay y sin ese array se heredarían los `args` de instalaciones antiguas basadas en `npx`.
-- `context-mode` es la única instalación global npm sin `--ignore-scripts`: `better-sqlite3` necesita su prebuild y el paquete ejecuta su propio `postinstall`.
 
 ### Prompt workflows (`config/agent/prompts/`)
 - Ficheros invocables: llevan `chain: step-a -> step-b` en el frontmatter.
@@ -175,7 +180,7 @@ Reglas:
 
 - **No versiones artefactos locales.** Comprueba con `git ls-files` antes de dar por bueno un fichero nuevo.
 - `.DS_Store` está ignorado; si aparece uno trackeado, `git rm --cached` y añade la ruta al `.gitignore`.
-- Las cachés de code intelligence (`.imale-data/`, `.eurecat-data/`) son **estado local por máquina** y no deben viajar en el repo. `.gitignore` ignora `.eurecat-data/` pero **falta `.imale-data/`**, y `.imale-data/pi-code-intelligence/global.sqlite` está trackeado.
+- **Residuo conocido**: `.imale-data/pi-code-intelligence/global.sqlite` sigue trackeado y el `.gitignore` no ignora `.imale-data/`. Proviene del paquete `pi-code-intelligence`, ya retirado del stack: no lo uses como fuente de nada ni amplíes esa caché.
 - `dist/` es salida de build: nunca lo commitees (el build lo regenera y el CI lo verifica).
 - No introduzcas secretos ni tokens en `config/agent/*.json` ni en los scripts: van a parar al `$HOME` de cualquiera que instale.
 
@@ -188,6 +193,8 @@ Reglas:
 - **Los tres instaladores están escritos a mano por plataforma.** Son candidatos naturales a divergir: al cambiar el flujo de instalación, revisa `install.sh`/`install.ps1`/`install.bat`, y `verify.*`/`uninstall.*` en paralelo.
 - **`macOS` vs `GNU` en utilidades**: `stat -f%z` vs `stat -c%s`, `shasum` vs `sha256sum`. El patrón del repo es encadenar con `||`.
 - **`verify.*` no sustituye al E2E**: los verificadores comprueban el estado del `$HOME`; `scripts/test-install.sh` comprueba la lógica.
+- **Pi no añade al PATH los binarios de los paquetes que instala**: `~/.pi/agent/npm/node_modules/.bin` no entra en el PATH del proceso. Por eso el servidor MCP de `context-mode` se lanza como binario **global** (`npm install -g context-mode`) y `verify.*` comprueba que `context-mode` está en el PATH. Un `"command"` que solo exista dentro de `~/.pi/agent/npm` no arrancará, y `npx` es la alternativa cuando no se quiere instalación global.
+- **Un paquete Pi instalado no equivale a funcionalidad activa.** Ejemplo real: la extensión de `billion-context` solo comprime si el tráfico del provider pasa por su proxy (`/bili/` o `BILLION_CONTEXT_PROXY`); instalada sola queda inerte. Antes de añadir un paquete, comprueba en su `package.json` (`pi.extensions`, `pi.skills`) y en su README si requiere binario, proxy o variables de entorno.
 
 ---
 
