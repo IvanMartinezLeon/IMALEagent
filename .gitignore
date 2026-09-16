@@ -1,2 +1,5 @@
 .imale-data/
 dist/
+
+# macOS
+.DS_Store
