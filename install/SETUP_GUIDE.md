@@ -28,7 +28,7 @@ Usa este documento si necesitas alguna de estas tareas:
 
 - instalar el stack en una máquina nueva
 - entender qué valida realmente `verify.*`
-- diagnosticar por qué `imaleagent` no aparece en PATH
+- diagnosticar por qué `IMALEagent` no aparece en PATH
 - revisar por qué falta `code intelligence` o `context-mode`
 - confirmar si el router híbrido está funcionando correctamente
 
@@ -92,7 +92,7 @@ install.bat
    - code intelligence
 4. configura `context-mode`
 5. deja disponible la extensión `ai-router`
-6. crea o actualiza el comando `imaleagent` (y `pi` como alias)
+6. crea o actualiza el comando `IMALEagent` (y `pi` como alias)
 
 ---
 
@@ -203,8 +203,6 @@ Una vez instalado, entra en cualquier repositorio y ejecuta:
 
 ```text
 /router-status
-/code-intelligence-doctor
-/enable-code-intelligence
 /mcp
 ```
 
@@ -213,16 +211,9 @@ Una vez instalado, entra en cualquier repositorio y ejecuta:
 #### `/router-status`
 Confirma si el entorno detecta:
 - tipo de repositorio
-- `code-intelligence`
 - `subagentes`
 - `context-mode`
 - política de routing activa
-
-#### `/code-intelligence-doctor`
-Comprueba que Code Intelligence puede funcionar correctamente en el entorno actual.
-
-#### `/enable-code-intelligence`
-Activa el repositorio actual para indexación y análisis estructural.
 
 #### `/mcp`
 Permite verificar que `context-mode` está disponible y que sus tools `ctx_` pueden invocarse.
@@ -251,7 +242,7 @@ npm --version
 
 Causa probable:
 - la terminal no ha recargado PATH
-- el comando `imaleagent` no está en el PATH actual
+- el comando `IMALEagent` no está en el PATH actual
 
 Acción en Linux/macOS:
 
@@ -292,28 +283,15 @@ grep -n 'context-mode' ~/.pi/agent/mcp.json
 
 Si no aparece, reejecuta el instalador.
 
-### `/enable-code-intelligence` falla
-
-Causa probable:
-- el repo no está listo para indexarse todavía
-- hay un problema local de permisos o configuración
-
-Acción:
-1. ejecuta antes `/code-intelligence-doctor`
-2. revisa permisos de escritura en el repo
-3. vuelve a lanzar `/enable-code-intelligence`
-
-### El router funciona, pero no recomienda `code_intelligence_*`
+### El router funciona, pero no sugiere búsquedas acotadas
 
 Causa probable:
 - el prompt no ha sido clasificado como tarea estructural
-- el repositorio aún no tiene Code Intelligence activado
 
 Acción:
 1. ejecuta `/router-status`
-2. ejecuta `/code-intelligence-doctor`
-3. activa el repo con `/enable-code-intelligence`
-4. revisa la sección de routing en `install/README.md`
+2. reformula la petición indicando el módulo o símbolo concreto
+3. revisa la sección de routing en `install/README.md`
 
 ### Los scripts funcionan, pero la experiencia no coincide con IMALE
 
@@ -354,7 +332,7 @@ Antes de pedir ayuda, recopila esta información:
 
 ### Una vez arrancado
 - resultado de `/router-status`
-- resultado de `/code-intelligence-doctor`
 - si `/mcp` muestra `context-mode`
+- presencia de `~/.pi/agent/GENERIC_RULES.md` y `~/.pi/agent/templates/SPEC_TEMPLATE.md`
 
 Con esta información, la mayoría de problemas se pueden reproducir y diagnosticar más rápido.

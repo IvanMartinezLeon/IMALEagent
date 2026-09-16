@@ -7,8 +7,8 @@
 
 ## Core Principles
 
-### 1. Code Intelligence First
-- Always use `code_intelligence_search` and `code_intelligence_impact` before bash searches
+### 1. Exploration Discipline
+- Map the structure first, then run scoped searches; never grep the repository root
 - See: [EXPLORATION_STRATEGY.md](EXPLORATION_STRATEGY.md)
 
 ### 2. Clean Architecture
@@ -163,27 +163,22 @@ go test ./...        # Run tests
 
 ### Recording Learnings
 
-When you discover a pattern or need to enforce a rule, record it:
+When you discover a pattern, a convention or a rule the team should keep, record it as durable documentation:
 
+```markdown
+### <Short title>
+**Rule:** <what to remember and why>
+**Applies when:** <trigger>
+**Prefer:** <what to do>
+**Avoid:** <what not to do>
 ```
-code_intelligence_record_learning({
-  title: "Short title",
-  summary: "What to remember and why",
-  ruleType: "prefer_pattern|avoid_pattern|architecture|workflow|...",
-  appliesWhen: "When this rule applies",
-  prefer: "What to do instead",
-  avoid: "What to avoid",
-  confidence: 0.85,  // 0-1
-  priority: 80,       // 0-100
-  status: "active"    // "active" or "draft"
-})
-```
+
+Store it in the project's `docs/` (or as an ADR) so future sessions do not have to rediscover it.
 
 **Examples:**
-- "Use code_intelligence_search before bash grep"
+- "Prefer scoped `rg` with a type filter over repo-wide grep"
 - "Constructor injection, never service locators"
 - "All UI strings must be localized"
-- "Record durable decisions in code_intelligence_record_learning"
 
 ### Sharing Knowledge
 
@@ -456,7 +451,10 @@ A: Code review, linting, testing, and team culture.
 
 ## Resources
 
-- **Code Intelligence:** [EXPLORATION_STRATEGY.md](EXPLORATION_STRATEGY.md)
+- **Working rules:** [GENERIC_RULES.md](GENERIC_RULES.md)
+- **Mobile specs:** [MOBILE_GUIDELINES.md](MOBILE_GUIDELINES.md)
+- **Spec & plan templates:** [templates/SPEC_TEMPLATE.md](templates/SPEC_TEMPLATE.md), [templates/PLAN_TEMPLATE.md](templates/PLAN_TEMPLATE.md)
+- **Exploration:** [EXPLORATION_STRATEGY.md](EXPLORATION_STRATEGY.md)
 - **Flutter:** https://flutter.dev/docs
 - **TypeScript:** https://www.typescriptlang.org/docs/
 - **Python:** https://pep8.org/ and https://mypy.readthedocs.io/

@@ -6,7 +6,7 @@
 Para arrancar IMALEagent desde la terminal:
 
 ```bash
-imaleagent
+IMALEagent
 # o también: pi
 ```
 
@@ -44,12 +44,14 @@ Delega trabajo a especialistas:
 ## Diagnóstico
 
 ```
-/router-status                - estado del routing y capacidades
-/code-intelligence-doctor     - diagnosticar code intelligence
-/enable-code-intelligence     - activar en el repo actual
-/code-intelligence-review     - revisión estructurada de cambios
-/code-intelligence-learnings  - ver learnings del proyecto
-/mcp                          - herramientas de contexto pesado
+/router-status   - estado del routing y capacidades
+/mcp             - herramientas de contexto pesado
+```
+
+## Especificaciones
+
+```
+/spec-mobile <funcionalidad>  - arrancar SPEC → PLAN → TASKS de una funcionalidad mobile
 ```
 
 ## Atajos

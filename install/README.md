@@ -45,7 +45,7 @@ Los scripts de este directorio realizan estas acciones:
    - code intelligence
 4. Configuran `context-mode` en `mcp.json`.
 5. Dejan disponible la extensión `ai-router`.
-6. Preparan el comando `imaleagent` (y `pi` como alias) orientado a contexto por proyecto.
+6. Preparan el comando `IMALEagent` (y `pi` como alias) orientado a contexto por proyecto.
 
 El objetivo es disponer de una **base de trabajo coherente para IMALE** en cualquier proyecto.
 
@@ -96,37 +96,36 @@ Instala IMALEagent sin necesidad de clonar el repositorio.
 ### macOS / Linux / Windows (Git Bash / WSL)
 
 ```bash
-curl -fsSL https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.sh | sh
 ```
 
 > También funciona en Windows si usas **Git Bash** o **WSL**.
 
-### Windows (PowerShell o CMD)
-
-No hay comando único: los instaladores de Windows se ejecutan desde el árbol del
-repositorio, porque `install\install.ps1` resuelve `config\agent` a partir de su
-propia ubicación (`$PSScriptRoot`). Descarga la release y descomprímela:
+### Windows PowerShell
 
 ```powershell
-$tmp = Join-Path $env:TEMP "imaleagent"
-New-Item -ItemType Directory -Force -Path $tmp | Out-Null
-iwr -useb https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/imaleagent.tar.gz -OutFile "$tmp\imaleagent.tar.gz"
-tar -xzf "$tmp\imaleagent.tar.gz" -C $tmp
+# Ejecutar como Administrador (recomendado) o usuario
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-& "$tmp\install\install.ps1"
+iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.ps1 | iex
 ```
 
-En CMD, tras descomprimir: `"%TEMP%\imaleagent\install\install.bat"`.
+### Windows CMD
+
+```bat
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.bat -o install.bat && install.bat
+```
 
 ### Instalar una versión específica
 
 ```bash
 # Por variable de entorno (Unix)
-INSTALL_VERSION=v1.0.0 curl -fsSL https://github.com/IvanMartinezLeon/IMALEagent/releases/download/v1.0.0/install.sh | sh
+INSTALL_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.sh | sh
 ```
 
-En Windows, sustituye `releases/latest/download/imaleagent.tar.gz` por
-`releases/download/v1.0.0/imaleagent.tar.gz` en el bloque anterior.
+```powershell
+# Versión específica en PowerShell
+$env:INSTALL_VERSION='v1.0.0'; iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.ps1 | iex
+```
 
 ---
 
@@ -184,8 +183,6 @@ Una vez arrancado:
 ```text
 /login
 /router-status
-/code-intelligence-doctor
-/enable-code-intelligence
 /mcp
 ```
 
@@ -200,28 +197,29 @@ Una vez arrancado:
 ```
 
 Esto te indica si el entorno detecta correctamente:
-- `code-intelligence`
 - `subagentes`
 - `context-mode`
 - tipo de repositorio
 - política de routing activa
 
-### 2. Activar Code Intelligence en el repo actual
+### 2. Confirmar que las guías están disponibles
 
 ```text
-/code-intelligence-doctor
-/enable-code-intelligence
+/spec-mobile
+/welcome
 ```
+
+Las guías (`GENERIC_RULES.md`, `MOBILE_GUIDELINES.md`), las plantillas de SPEC/PLAN y las skills `flutter-guidelines`/`dart-guidelines` se copian a `~/.pi/agent/` y quedan disponibles en cualquier proyecto.
 
 ### 3. Usar el flujo adecuado según la tarea
 
 #### Descubrimiento estructural
-Usa primero:
+Mapea primero y después acota la búsqueda. En la práctica:
 
-```text
-code_intelligence_search
-code_intelligence_impact
-code_intelligence_analyze_changes
+```bash
+ls -la && find . -maxdepth 3 -type d -not -path "*/node_modules/*"
+rg -n "symbol" src/module/ -t ts -m 10
+rg "symbol\(" src/ -l -t ts
 ```
 
 Para preguntas como:
@@ -229,6 +227,9 @@ Para preguntas como:
 - qué consumidores se verán afectados
 - qué tests revisar antes de tocar un archivo compartido
 - qué patrones existentes conviene reutilizar
+
+#### Funcionalidades nuevas
+Empieza por la especificación: usa el prompt `/spec-mobile` o copia `templates/SPEC_TEMPLATE.md` como `SPEC.md`.
 
 #### Subagentes y workflows genéricos
 Cuando el trabajo sea reutilizable entre proyectos, delega con la capa genérica instalada globalmente.
@@ -273,7 +274,7 @@ Y después las tools `ctx_` de `context-mode`.
 
 La instalación deja preparado un flujo híbrido con tres capas:
 
-- `code_intelligence_*` para descubrimiento estructural e impacto
+- búsqueda acotada (`rg`, `read`) para descubrimiento e impacto
 - `context-mode` para logs, salidas grandes y procesamiento pesado
 - tools nativas (`read`, `edit`, `write`, `bash`) para implementación puntual
 
@@ -288,20 +289,17 @@ Para preguntas como:
 
 Empieza por:
 
-```text
-/code-intelligence-doctor
-/enable-code-intelligence
-code_intelligence_search
-code_intelligence_impact
-code_intelligence_analyze_changes
+```bash
+ls -la && find . -maxdepth 3 -type d -not -path "*/node_modules/*"
+rg -n "symbol" src/ -t ts -m 10
+rg "symbol\(" src/ -l -t ts
 ```
 
 #### Review mode
 Para revisión de cambios, calidad o seguridad:
 
-```text
-/code-intelligence-review
-code_intelligence_analyze_changes
+```bash
+rg -l "<símbolo cambiado>" src/ -t ts      # consumidores afectados
 ```
 
 Y después lectura puntual en los archivos shortlistados.
@@ -329,7 +327,7 @@ bash
 
 La idea no es sustituir las tools nativas, sino ordenar el flujo:
 
-- `code-intelligence` decide dónde mirar primero
+- la búsqueda acotada decide dónde mirar primero
 - `context-mode` evita inundar la conversación con salida pesada
 - las tools nativas ejecutan la implementación final
 
@@ -518,14 +516,14 @@ verify.bat
 
 Las verificaciones comprueban, entre otros puntos:
 
-- presencia de `node`, `npm` y `imaleagent` / `pi`
+- presencia de `node`, `npm` y `IMALEagent` / `pi`
 - instalación y activación de subagentes
 - instalación y activación del adaptador MCP
 - instalación y activación de code intelligence
 - presencia de `context-mode` en `~/.pi/agent/mcp.json`
 - disponibilidad de la extensión `ai-router`
 - presencia de los subagentes genéricos instalados en `~/.pi/agent/agents`
-- presencia de los prompt workflows genéricos instalados en `~/.pi/agent/prompts`
+- presencia de los prompt workflows genéricos instaladas en `~/.pi/agent/prompts`
 
 ---
 
@@ -541,7 +539,6 @@ Las verificaciones comprueban, entre otros puntos:
 - [Pi](https://pi.dev/docs/latest)
 - [subagentes](https://pi.dev/packages/pi-subagents)
 - [adaptador MCP](https://pi.dev/packages/pi-mcp-adapter)
-- [code intelligence](https://pi.dev/packages/@catdaemon/pi-code-intelligence)
 
 ---
 
@@ -585,8 +582,8 @@ git push origin v1.2.3
 
 # 3. Crear release con gh CLI
 gh release create v1.2.3 \
-  dist/imaleagent-v1.2.3.tar.gz \
-  dist/imaleagent.tar.gz \
+  dist/IMALEagent-v1.2.3.tar.gz \
+  dist/IMALEagent.tar.gz \
   install/install.sh \
   install/install.ps1 \
   install/install.bat \
@@ -599,14 +596,14 @@ gh release create v1.2.3 \
 Sin releases, apuntando directamente a la rama `release`:
 
 ```bash
-curl -fsSL https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.sh | sh
 ```
 
 > ⚠ **RAW no está pensado para producción.** Para instalaciones reproducibles, usa siempre un tag versionado.
 
 ### Opción 3: Dominio propio
 
-Con un dominio propio (`imaleagent.dev`), sirve el script desde un CDN o haz un redirect a GitHub RAW.
+Con un dominio propio (`IMALEagent.dev`), sirve el script desde un CDN o haz un redirect a GitHub RAW.
 
 ---
 
@@ -616,9 +613,9 @@ Si quieres el flujo mínimo recomendado:
 
 1. ejecuta el instalador de tu plataforma
 2. valida con `verify.*`
-3. ejecuta `imaleagent` dentro de un proyecto
+3. ejecuta `IMALEagent` dentro de un proyecto
 4. ejecuta `/router-status`
-5. activa Code Intelligence en el repo
+5. revisa `config/agent/GENERIC_RULES.md` y las plantillas de SPEC/PLAN
 6. prueba al menos uno de estos flujos: `generic-discovery` o `generic-implement-safe`
-7. usa `code_intelligence_*` antes de explorar a ciegas
+7. usa `rg` acotado antes de explorar a ciegas
 8. usa `context-mode` para salidas grandes

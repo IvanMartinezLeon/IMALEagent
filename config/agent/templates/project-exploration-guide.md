@@ -1,110 +1,108 @@
 # Project Exploration Strategy Template
 
-> **Copy this file to your project and customize**  
-> Path: `docs/exploration-strategy.md` or similar  
-> Based on: `iml/EXPLORATION_STRATEGY.md`
+> **Copy this file into your project and customize it.**
+> Suggested path: `docs/exploration-strategy.md`
+> Based on: `EXPLORATION_STRATEGY.md`
 
 ---
 
 ## [PROJECT_NAME] Exploration Strategy
 
-**Project:** [Your Project Name]  
-**Tech Stack:** [e.g., Flutter/Dart, TypeScript/React, Python/Django, Go/gRPC]  
-**Status:** Active / Mandatory  
+**Project:** [Your Project Name]
+**Tech Stack:** [e.g. Flutter/Dart, TypeScript/React, Python/Django, Go/gRPC]
+**Status:** Active / Mandatory
 **Last Updated:** [Date]
 
 ---
 
 ## Overview
 
-All team members and agents working on **[PROJECT_NAME]** must follow this exploration strategy to maximize efficiency and minimize token usage in Pi.
+Everyone working on **[PROJECT_NAME]** (humans and agents) follows this strategy to explore the codebase cheaply and accurately.
 
-### Key Principle
-**Prefer code intelligence tools over broad bash searches.**
+### Key principle
+**Map first, then search scoped, then read only what you need.**
 
-Every search in this codebase should follow:
+1. ✅ **Map** — `ls`, `find -maxdepth`, read `AGENTS.md`
+2. ✅ **Scope** — `rg -n "symbol" <directory> -t <type>`, `rg -l` for file lists
+3. ✅ **Read/verify** — `rg -n ... -A 20` or the read tool with offset/limit
 
-1. ✅ **Semantic Search** — `code_intelligence_search` for patterns
-2. ✅ **Dependency Analysis** — `code_intelligence_impact` for relationships
-3. ✅ **Exact Verification** — bash `grep -n` for narrow scope **only**
-
-**Result:** 60–80% fewer tokens, faster insights, better accuracy.
+**Result:** fewer tokens, faster orientation, fewer missed call sites.
 
 ---
 
 ## The Three-Step Hierarchy
 
-### Step 1: Semantic Search
-
-```dart
-code_intelligence_search({
-  query: "what are you looking for?",
-  currentFiles: ["lib/features/..."],  // optional: narrow by current context
-  mode: "hybrid"
-})
-```
-
-### Step 2: Dependency Analysis
-
-```dart
-code_intelligence_impact({
-  paths: ["lib/features/auth/..."],
-  maxFiles: 16
-})
-```
-
-### Step 3: Narrow Bash Verification
+### Step 1: Map the structure
 
 ```bash
-grep -n "exact_string" lib/path/to/file.dart
+ls -la
+find . -maxdepth 3 -type d -not -path "*/node_modules/*" -not -path "*/.git/*"
+[ -f AGENTS.md ] && cat AGENTS.md
+```
+
+### Step 2: Scoped search
+
+```bash
+# Matches inside one directory, filtered by language, output capped
+rg -n "SymbolName" lib/features/<feature>/ -m 10
+
+# File lists only (usually what you want before a change)
+rg -l "SymbolName" lib/ -g '*.dart'
+```
+
+### Step 3: Read and verify
+
+```bash
+rg -n "methodName" -A 20 lib/features/<feature>/<file>.dart
+# or: read tool with offset/limit
 ```
 
 ---
 
 ## Project-Specific Examples
 
-### Common Search 1: [EXAMPLE_1]
+### Common search 1: [EXAMPLE_1]
 
 **Goal:** [Describe what you want to find]
 
-**❌ Wrong Approach:**
+**❌ Wrong approach:**
 ```bash
 grep -r "pattern" lib/
-find lib/ -name "*.dart" | xargs grep something
 ```
 
-**✅ Right Approach:**
-```dart
-code_intelligence_search({
-  query: "semantic description of what you're looking for"
-})
-
-code_intelligence_impact({
-  paths: ["lib/path/to/relevant/file.dart"]
-})
-
-bash grep -n "exact_match" lib/path/to/file.dart  // verify if needed
+**✅ Right approach:**
+```bash
+rg -l "pattern" lib/ -g '*.dart'          # where is it?
+rg -n "pattern" lib/<module>/ -m 10 -C 2  # how is it used?
+rg -n "pattern" -A 20 lib/<module>/<file>.dart   # implementation
 ```
 
-**Expected Result:** [Describe what good results look like]
+**Expected result:** [Describe what good results look like]
 
 ---
 
-### Common Search 2: [EXAMPLE_2]
+### Common search 2: [EXAMPLE_2]
 
 **Goal:** [Describe]
 
-**Query:** `code_intelligence_search({ query: "..." })`
+**Commands:**
+```bash
+rg -l "<symbol>" <path> -g '<glob>'
+rg -n "<symbol>\(" <path> -g '<glob>'
+```
 
 **Result:** [Expected output]
 
 ---
 
-### Common Search 3: [EXAMPLE_3]
+### Common search 3: [EXAMPLE_3]
 
 **Goal:** [Describe]
 
-**Query:** `code_intelligence_impact({ paths: [...] })`
+**Commands:**
+```bash
+rg -l "<existing-test-name>" . -g '*test*'
+```
 
 **Result:** [Expected output]
 
@@ -114,22 +112,22 @@ bash grep -n "exact_match" lib/path/to/file.dart  // verify if needed
 
 ### [Language/Framework]
 
-**What code_intelligence_search finds well:**
-- [Pattern 1]
-- [Pattern 2]
-- [Pattern 3]
+**Where things live:**
+- [Layer/dir 1] — [what it contains]
+- [Layer/dir 2] — [what it contains]
 
-**What code_intelligence_impact is useful for:**
-- [Relationship 1]
-- [Relationship 2]
-- [Relationship 3]
+**Naming conventions to exploit when searching:**
+- [Convention 1, e.g. `*_cubit.dart` for state management]
+- [Convention 2, e.g. `**.repository.ts` for data access]
+- [Convention 3]
 
-**Example queries:**
-```
-"Find [pattern]"
-"How is [feature] implemented?"
-"Where is the [configuration]?"
-```
+**Globs worth remembering:**
+- `-g '*.dart'`, `-t ts`, `-t py`, `-g '*_test.go'`
+
+**Example patterns:**
+- `"class <Feature>Cubit"` — find state manager
+- `"context.l10n\."` — find translated UI strings
+- `"<feature>/data/datasources"` — find data access
 
 ---
 
@@ -156,70 +154,62 @@ bash grep -n "exact_match" lib/path/to/file.dart  // verify if needed
 
 ## Team Standards
 
-### Mandatory Rules
-1. Always use code_intelligence_search before broad bash searches
-2. Use code_intelligence_impact to understand impact before changes
-3. Only use bash grep for verification in known, narrow scope
-4. Document your search strategy in commit messages or PRs
+### Mandatory rules
+1. Never search the whole repo with a bare `rg`/`grep -r`.
+2. Scope every search to a directory and filter by file type.
+3. Use `rg -l` to list files before a change; check all call sites.
+4. Read files completely only when you are going to modify them.
+5. Check tests before assuming behavior.
 
-### Code Intelligence Learnings
-This project records durable learnings via `code_intelligence_record_learning`. See:
-- Recorded learnings: [Link or `/code-intelligence-doctor` in Pi]
-- Contribution: Use `code_intelligence_record_learning` to record new patterns
+### Budget discipline
+- Expected tokens per exploration task: **80–150**
+- If an output exceeds ~150 lines, narrow the path or add a type filter.
 
-### Token Budget
-- Expected tokens per exploration task: **80–100** (not 300+)
-- If your search exceeds 150 tokens, you likely used bash search. Use code_intelligence instead.
+### Durable learnings
+When the team agrees on a reusable convention, record it as project documentation (or an ADR) so it is not re-discovered by every new agent session.
 
 ---
 
 ## Troubleshooting
 
-### Q: My code_intelligence_search returned no results
+### Q: My scoped search returns nothing
 
 **A:** Try these:
-1. Rephrase the query more specifically
-2. Use `currentFiles` to narrow context
-3. Check if the codebase is indexed: run `/code-intelligence-doctor` in Pi
-4. If index is stale, run `/enable-code-intelligence` to refresh
+1. Widen the directory one level (`lib/features/` instead of `lib/features/orders/`)
+2. Search by a shorter concept word instead of an exact symbol
+3. Drop the type filter to see whether the pattern exists in another language
+4. Check spelling and casing — most codebases are camelCase for members, PascalCase for types
 
 ### Q: I need to find something but don't know where
 
-**A:** Start with an exploratory `code_intelligence_search` query, then narrow:
-```dart
-code_intelligence_search({ query: "broad description of feature" })
-code_intelligence_impact({ paths: [results_from_above] })
-bash grep -n "exact_match" [narrowed_path]  // final verification
+**A:** Map first, then search by naming convention:
+```bash
+find lib -maxdepth 2 -type d                       # structure
+rg -l "<short concept>" lib/ -g '*.dart'           # candidate files
+rg -n "<short concept>" lib/<candidate>/ -m 10     # usage
 ```
 
-### Q: Can I use bash grep directly?
+### Q: Can I use a recursive grep?
 
-**A:** Only in these cases:
-- You know the exact file and just need to verify a line
-- You're cross-checking results from code_intelligence tools
-- You're searching in config files or generated code
-
-Even then, narrow the scope first: `grep -n "x" path/to/known/file.ext`
+**A:** Only with `-l` and after narrowing to a subtree. Never over the repository root.
 
 ---
 
 ## Related Resources
 
-- **Generic Exploration Guide:** [Reference iml/EXPLORATION_STRATEGY.md](../../iml/EXPLORATION_STRATEGY.md)
-- **IMALEagent Docs:** [See main README]
-- **Code Intelligence in Pi:** Run `/code-intelligence-doctor` in Pi
+- **Generic Exploration Guide:** [`EXPLORATION_STRATEGY.md`](../EXPLORATION_STRATEGY.md)
+- **Engineering standards:** [`BEST_PRACTICES.md`](../BEST_PRACTICES.md)
 - **Project README:** [Link to main README]
 
 ---
 
 ## Contributing
 
-Found a new pattern or optimization? Help improve this guide:
+Found a new pattern or optimization?
 
-1. Test your approach and measure token usage
-2. Document it here with example before/after
-3. Consider recording a `code_intelligence_record_learning` entry
-4. Submit a PR or share with the team
+1. Test it and note the token impact
+2. Document it here with a before/after example
+3. Submit a PR or share it with the team
 
 ---
 
@@ -231,4 +221,4 @@ Found a new pattern or optimization? Help improve this guide:
 
 ---
 
-**For questions:** See [PROJECT_CONTACT] or refer to the generic [iml/EXPLORATION_STRATEGY.md](../../iml/EXPLORATION_STRATEGY.md)
+**For questions:** [PROJECT_CONTACT] — or see the generic [`EXPLORATION_STRATEGY.md`](../EXPLORATION_STRATEGY.md)

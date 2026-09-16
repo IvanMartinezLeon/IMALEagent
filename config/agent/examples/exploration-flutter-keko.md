@@ -1,28 +1,28 @@
-# Keko (Flutter) Exploration Strategy - Example
+# Keko (Flutter) Exploration Strategy — Example
 
-> **Real-world example using the Keko Flutter project**  
-> Reference this as a template for Flutter/Dart projects
+> **Real-world example based on the Keko Flutter project.**
+> Use it as a template for Flutter/Dart projects.
 
 ---
 
 ## Keko Project Exploration Strategy
 
-**Project:** Keko Order Management (Flutter)  
-**Tech Stack:** Flutter 3.12+, Dart, BLoC state management  
-**Key Patterns:** Domain/Data/Presentation, Cubits, GoRouter navigation  
-**Status:** Active, Mandatory for all agent work  
+**Project:** Keko Order Management (Flutter)
+**Tech stack:** Flutter 3.12+, Dart, BLoC state management
+**Key patterns:** Domain/Data/Presentation, Cubits, GoRouter navigation
+**Status:** Active, mandatory for all agent work
 
 ---
 
 ## Key Concepts
 
-### Architecture Pattern
-- **Clean Architecture** with feature-based organization
+### Architecture pattern
+- **Clean Architecture** with feature-based organisation
 - **Domain/Data/Presentation** layers per feature
 - **BLoC/Cubit** for state management
 - **GoRouter** with StatefulShellRoute for navigation
 
-### Main Features
+### Main features
 ```
 lib/features/
 ├── auth/               # Authentication with Cubit
@@ -43,88 +43,69 @@ lib/features/
 
 ## Common Searches & Examples
 
-### Example 1: Understanding Order Status Tracking
+### Example 1: Understanding order status tracking
 
 **Goal:** How are order states managed and how is history tracked?
 
-**❌ Wrong Way (wastes 300+ tokens):**
+**❌ Wrong way (wastes 300+ tokens):**
 ```bash
 grep -r "status" lib/features/orders/
 grep -r "OrderCubit" lib/
 find lib/features/orders -name "*.dart" | xargs grep "state\|history"
 ```
 
-**✅ Right Way (uses ~80 tokens):**
+**✅ Right way (uses ~80 tokens):**
+```bash
+# Step 1: locate the state manager and entity
+rg -l "class OrderCubit" lib/features/orders/ -g '*.dart'
+rg -n "statusHistory|class StatusChange" lib/features/orders/domain/ -m 5
 
-```dart
-// Step 1: Understand the pattern
-code_intelligence_search({
-  query: "order status management and history tracking implementation",
-  currentFiles: ["lib/features/orders/domain/entities/order.dart"]
-})
+# Step 2: find every consumer of OrderCubit before touching it
+rg "OrderCubit" lib/ -l -g '*.dart'
 
-// Result: Shows Order entity with statusHistory list, StatusChange entity, updateOrderStatus method
-
-// Step 2: See what depends on it
-code_intelligence_impact({
-  paths: ["lib/features/orders/presentation/cubits/order_cubit.dart"]
-})
-
-// Result: Shows OrderDetailScreen, OrderListScreen, HomeScreen all consume OrderCubit
-
-// Step 3: Verify exact implementation (if needed)
-bash grep -n "updateOrderStatus" lib/features/orders/presentation/cubits/order_cubit.dart
+# Step 3: verify the exact method (only if needed)
+rg -n "updateOrderStatus" -A 20 lib/features/orders/presentation/cubits/order_cubit.dart
 ```
 
-**Expected Output:**
-- Order entity with `List<OrderItem> items` and `List<StatusChange> history`
-- StatusChange with `status`, `changedAt`, `note` fields
-- OrderCubit with `updateOrderStatus(orderId, newStatus, {note})`
-- TimelineView displaying history on OrderDetailScreen
-
-**Token Savings:** ~220 tokens (73% reduction)
+**Expected output:**
+- `Order` entity with `List<OrderItem> items` and `List<StatusChange> history`
+- `StatusChange` with `status`, `changedAt`, `note` fields
+- `OrderCubit.updateOrderStatus(orderId, newStatus, {note})`
+- `TimelineView` displaying history on `OrderDetailScreen`
 
 ---
 
-### Example 2: Finding All Translations (i18n Keys)
+### Example 2: Finding all translations (i18n keys)
 
-**Goal:** Where are all the user-facing strings defined, and how to add a new translation?
+**Goal:** Where are all user-facing strings defined, and how do I add a new translation?
 
-**❌ Wrong Way:**
+**❌ Wrong way:**
 ```bash
 grep -r "Text(" lib/features/*/presentation/
 find lib -name "*.arb"
 grep -r "context.l10n" lib/
 ```
 
-**✅ Right Way:**
+**✅ Right way:**
+```bash
+# Step 1: find the localization files
+rg -l "appLocalizationsDelegates|AppLocalizations" lib/ -g '*.dart'
+ls lib/l10n/
 
-```dart
-// Step 1: Find translation system
-code_intelligence_search({
-  query: "localization and AppLocalizations setup"
-})
+# Step 2: find how strings are accessed
+rg -n "extension.*BuildContext" lib/core/extensions/ -g '*.dart'
 
-// Result: Points to lib/l10n/ with app_en.arb, app_es.arb, app_ca.arb
-
-// Step 2: Understand how strings are accessed
-code_intelligence_search({
-  query: "context.l10n usage pattern in UI widgets"
-})
-
-// Result: Shows extension in lib/core/extensions/localization_extension.dart
-
-// Step 3: Verify exact extension (optional)
-bash grep -n "extension.*BuildContext" lib/core/extensions/localization_extension.dart
+# Step 3: list a specific key across locales
+rg -n "loginTitle" lib/l10n/ -g '*.arb'
 ```
 
-**Expected Output:**
+**Expected output:**
 - `lib/l10n/app_en.arb`, `app_es.arb`, `app_ca.arb` with all keys
 - Extension `context.l10n` for easy access
-- All screens use `context.l10n.keyName` for UI strings
-- `flutter gen-l10n` generates code after changes
+- All screens use `context.l10n.keyName`
+- `flutter gen-l10n` regenerates code after changes
 
-**Pattern to Remember:**
+**Pattern to remember:**
 ```dart
 // Always use this in any UI:
 Text(context.l10n.loginTitle)  // NOT Text('Welcome Back')
@@ -137,11 +118,11 @@ Text(context.l10n.loginTitle)  // NOT Text('Welcome Back')
 
 ---
 
-### Example 3: Tracing a Cart Item Through the System
+### Example 3: Tracing a cart item through the system
 
-**Goal:** What happens when a user adds a product to cart? (from tap to screen update)
+**Goal:** What happens when a user adds a product to the cart? (from tap to screen update)
 
-**❌ Wrong Way:**
+**❌ Wrong way:**
 ```bash
 grep -r "addItem" lib/
 grep -r "CartItem" lib/
@@ -149,127 +130,86 @@ grep -r "CartCubit" lib/
 # Results: 50+ matches, no flow understanding
 ```
 
-**✅ Right Way:**
+**✅ Right way:**
+```bash
+# Step 1: define the boundaries of the flow
+rg -n "void addItem" -A 15 lib/features/cart/presentation/cubits/cart_cubit.dart
+rg -l "class CartItem" lib/features/cart/domain/ -g '*.dart'
 
-```dart
-// Step 1: Understand the cart data flow
-code_intelligence_search({
-  query: "cart add item flow from product screen to cart cubit"
-})
-
-// Result: Points to CartCubit.addItem(), CartItem entity, ProductListScreen
-
-// Step 2: See what consumes cart state
-code_intelligence_impact({
-  paths: ["lib/features/cart/presentation/cubits/cart_cubit.dart"]
-})
-
-// Result: Shows CartScreen, ProductListScreen (badge), main.dart (global provider)
-
-// Step 3: Optional - verify the exact cubit method
-bash grep -n "void addItem" lib/features/cart/presentation/cubits/cart_cubit.dart
+# Step 2: find all consumers of the cart state
+rg "CartCubit" lib/ -l -g '*.dart'
+rg -n "context.read<CartCubit>\(\)" lib/ -g '*.dart' -m 10
 ```
 
-**Expected Flow:**
-1. User taps "Add to Cart" on product → `_showAddToCartSheet()` bottom sheet
+**Expected flow:**
+1. User taps "Add to Cart" on a product → `_showAddToCartSheet()` bottom sheet
 2. Selects quantity → confirms
-3. `context.read<CartCubit>().addItem(product, quantity)` called
-4. CartCubit adds CartItem to state
-5. CartScreen rebuilds with new item
-6. ProductListScreen badge updates (shows total items)
+3. `context.read<CartCubit>().addItem(product, quantity)` is called
+4. `CartCubit` adds the `CartItem` to its state
+5. `CartScreen` rebuilds with the new item
+6. `ProductListScreen` badge updates (total items)
 
-**Key Files:**
-- `lib/features/cart/domain/entities/cart_item.dart` — CartItem entity
-- `lib/features/cart/presentation/cubits/cart_cubit.dart` — CartCubit with addItem, updateQuantity, removeItem
-- `lib/main.dart` — CartCubit provided globally
+**Key files:**
+- `lib/features/cart/domain/entities/cart_item.dart` — `CartItem` entity
+- `lib/features/cart/presentation/cubits/cart_cubit.dart` — `addItem`, `updateQuantity`, `removeItem`
+- `lib/main.dart` — `CartCubit` provided globally
 - `lib/features/cart/presentation/screens/cart_screen.dart` — UI
 
 ---
 
-### Example 4: Finding Where Order Creation Happens
+### Example 4: Finding where order creation happens
 
 **Goal:** How are orders created from cart items?
 
-**❌ Wrong Way:**
+**❌ Wrong way:**
 ```bash
 grep -r "createOrder" lib/
 grep -r "Order(" lib/
 find lib/features/orders -name "*datasource*"
 ```
 
-**✅ Right Way:**
+**✅ Right way:**
+```bash
+# Step 1: find the creation entry point
+rg -n "createOrderFromCart" lib/ -g '*.dart'
 
-```dart
-// Step 1: Find order creation logic
-code_intelligence_search({
-  query: "order creation from cart items and initial order state",
-  currentFiles: ["lib/features/cart/presentation/screens/cart_screen.dart"]
-})
+# Step 2: find what consumes orders
+rg "OrderCubit" lib/ -l -g '*.dart'
 
-// Result: Shows createOrderFromCart in OrderCubit
-
-// Step 2: See the full order lifecycle
-code_intelligence_impact({
-  paths: ["lib/features/orders/presentation/cubits/order_cubit.dart"]
-})
-
-// Result: Shows what depends on OrderCubit (HomeScreen, OrderListScreen, ProfileScreen, OrderDetailScreen)
-
-// Step 3: Trace the order data source (optional)
-bash grep -n "class OrderLocalDataSource" lib/features/orders/data/datasources/order_local_datasource.dart
+# Step 3: locate the data source
+rg -n "class OrderLocalDataSource" -A 10 lib/features/orders/data/datasources/
 ```
 
-**Key Methods:**
-- `OrderCubit.createOrderFromCart(List<OrderItem> items)` — Creates new order
-- `OrderCubit.updateOrderStatus(id, status, {note})` — Changes order status
-- `OrderCubit.cancelOrder(id)` — Sets status to Cancelled
-- `OrderLocalDataSource` — In-memory order storage with mock data
-
-**Mock Data Loaded In:**
-```dart
-// Initial orders seeded in OrderLocalDataSource._cachedOrders
-// Supports state changes during a session (not persisted)
-```
+**Key methods:**
+- `OrderCubit.createOrderFromCart(List<OrderItem> items)` — creates a new order
+- `OrderCubit.updateOrderStatus(id, status, {note})` — changes order status
+- `OrderCubit.cancelOrder(id)` — sets status to `Cancelled`
+- `OrderLocalDataSource` — in-memory order storage with mock data
 
 ---
 
-### Example 5: Checking Localization Coverage
+### Example 5: Checking localization coverage
 
 **Goal:** Ensure all UI strings are translated (no hardcoded strings in screens)
 
-**❌ Wrong Way:**
+**❌ Wrong way:**
 ```bash
 grep -r "Text\(" lib/features/*/presentation/screens/
-grep -r "const Text" lib/
 find lib -name "*.dart" -exec grep "Text('.*')" {} \;
 ```
 
-**✅ Right Way:**
+**✅ Right way:**
+```bash
+# Step 1: find hardcoded strings (should return nothing if compliant)
+rg "Text\('[^']" lib/features/*/presentation/screens/ -g '*.dart' -m 20
 
-```dart
-// Step 1: Find all non-translated text
-code_intelligence_search({
-  query: "hardcoded English strings not using context.l10n in UI",
-  currentFiles: ["lib/features/"]
-})
-
-// Result: If any found, lists them (should be empty if compliant)
-
-// Step 2: Check localization extension usage
-code_intelligence_impact({
-  paths: ["lib/core/extensions/localization_extension.dart"]
-})
-
-// Result: Shows all files importing the extension, all screens should be here
-
-// Step 3: Run the actual validation (optional)
-bash grep -r "Text('" lib/features/*/presentation/screens/ | grep -v "context.l10n"
+# Step 2: confirm localization usage per screen
+rg -c "context\.l10n\." lib/features/*/presentation/screens/ -g '*.dart'
 ```
 
-**Compliance Rule:**
-Every `Text()`, tooltip, hint, label, SnackBar message in UI must use `context.l10n.key`.
+**Compliance rule:**
+Every `Text()`, tooltip, hint, label and SnackBar message in the UI must use `context.l10n.key`.
 
-**Pattern Check:**
 ```dart
 // ✅ CORRECT
 Text(context.l10n.loginTitle)
@@ -286,107 +226,94 @@ const Text('Button Label')
 
 ## Dart/Flutter-Specific Tips
 
-### Cubit State Changes
-**Search:** "How does [CubitName] emit state?"
-```dart
-code_intelligence_search({
-  query: "OrderCubit state emissions and event handling"
-})
+### Cubit state changes
+```bash
+rg -n "emit\(" lib/features/<feature>/presentation/cubits/<cubit>_cubit.dart -m 20
 ```
 
-### Widget Hierarchy
-**Search:** "What widgets consume [HookOrProvider]?"
-```dart
-code_intelligence_impact({
-  paths: ["lib/features/orders/presentation/cubits/order_cubit.dart"]
-})
+### Widget consumers
+```bash
+rg "<CubitName>" lib/ -l -g '*.dart'
+rg -n "BlocBuilder<|<CubitName>" lib/ -g '*.dart' -m 10
 ```
 
-### Navigation Routes
-**Search:** "What routes are available and how to navigate?"
-```dart
-code_intelligence_search({
-  query: "GoRouter route configuration and StatefulShellRoute"
-})
+### Navigation routes
+```bash
+rg -n "GoRoute|StatefulShellRoute" lib/ -g '*.dart' -m 20
 ```
 
 ### Testing
-**Search:** "What tests cover this feature?"
-```dart
-code_intelligence_impact({
-  paths: ["lib/features/orders/presentation/cubits/order_cubit.dart"]
-})
-// Result includes test counterparts like order_cubit_test.dart
+```bash
+rg -l "<feature>" test/ -g '*_test.dart'
+rg -n "testWidgets|test\(" test/features/<feature>/ -m 20
 ```
 
 ---
 
 ## Token Budget Expectations
 
-| Task | Expected Tokens | Acceptable Range |
+| Task | Expected tokens | Acceptable range |
 |------|-----------------|------------------|
-| Find feature implementation | 80 | 60–120 |
-| Understand impact of change | 100 | 80–150 |
+| Find feature implementation | 100 | 60–150 |
+| Understand impact of a change | 100 | 80–150 |
 | Trace data flow | 120 | 100–180 |
 | Check test coverage | 90 | 70–130 |
-| Add new translation | 60 | 40–100 |
+| Add a new translation | 60 | 40–100 |
 
-**If your search exceeds the range:** You likely used broad bash. Switch to code_intelligence tools.
+**If your search exceeds the range:** you probably searched too broadly. Narrow the path and add a `-g '*.dart'` filter.
 
 ---
 
 ## Keko-Specific Rules
 
-### Rule 1: All UI Text Must Be Localized
+### Rule 1: All UI text must be localized
 - Use `context.l10n.keyName` for every visible string
-- Add key to `lib/l10n/app_en.arb`, `app_es.arb`, `app_ca.arb`
+- Add the key to `lib/l10n/app_en.arb`, `app_es.arb`, `app_ca.arb`
 - Run `flutter gen-l10n` after changes
-- **Violation:** Fails `/flutter analyze`, blocks PR
+- **Violation:** fails `flutter analyze`, blocks the PR
 
-### Rule 2: Exploration First (Code Intelligence)
-- Search semantically before bash
-- Use `code_intelligence_impact` before refactoring
-- Record learnings via `code_intelligence_record_learning`
+### Rule 2: Exploration discipline
+- Map the feature folder before searching inside it
+- List consumers (`rg -l`) before refactoring a Cubit or entity
+- Use `-g '*.dart'` on every search
 
-### Rule 3: Clean Architecture Maintained
-- All UI strings in Presentation layer use localization
+### Rule 3: Clean Architecture maintained
+- All UI strings in the Presentation layer use localization
 - Data sources accept dependencies via constructor
-- No dead code (YAGNI principle)
-- Learnings recorded as `code_intelligence_record_learning` entries
+- No dead code (YAGNI)
 
 ---
 
 ## Quick Reference for Keko
 
-```dart
-// Find order logic
-code_intelligence_search({ query: "order creation and status management" })
+```bash
+# Find order logic
+rg -l "OrderCubit|createOrderFromCart" lib/ -g '*.dart'
 
-// See what depends on OrderCubit
-code_intelligence_impact({ paths: ["lib/features/orders/..."] })
+# See what depends on OrderCubit
+rg "OrderCubit" lib/ -l -g '*.dart'
 
-// Check localization
-bash grep -n "context.l10n" lib/features/profile/presentation/screens/profile_screen.dart
+# Check localization usage in a screen
+rg -n "context.l10n" lib/features/profile/presentation/screens/profile_screen.dart
 
-// Verify test coverage
-code_intelligence_impact({ paths: ["lib/features/profile/presentation/cubits/profile_cubit.dart"] })
+# Find tests for a cubit
+rg -l "profile_cubit" test/ -g '*_test.dart'
 
-// Find translation keys
-bash grep "statTotal\|statReceived" lib/l10n/app_en.arb
+# Find translation keys
+rg "statTotal|statReceived" lib/l10n/ -g '*.arb'
 ```
 
 ---
 
 ## Links & References
 
-- **Project README:** `docs/` in main repo
-- **Generic Exploration Guide:** `iml/EXPLORATION_STRATEGY.md`
-- **Code Intelligence Learnings:** Run `/code-intelligence-doctor` in Pi
-- **Localization Files:** `lib/l10n/app_*.arb`
-- **Architecture Pattern:** Clean Architecture by Uncle Bob
+- **Project README:** `docs/` in the main repo
+- **Generic exploration guide:** [`EXPLORATION_STRATEGY.md`](../EXPLORATION_STRATEGY.md)
+- **Localization files:** `lib/l10n/app_*.arb`
+- **Architecture pattern:** Clean Architecture
 
 ---
 
-**Version:** 1.0  
-**Last Updated:** June 2026  
-**Status:** Example / Template for Flutter projects
+**Version:** 2.0
+**Last updated:** June 2026
+**Status:** Example / template for Flutter projects

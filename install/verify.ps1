@@ -139,6 +139,24 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         $global:checksFail++
     }
 
+    $guidesAndTemplates = @(
+        (Join-Path $agentConfigDir "GENERIC_RULES.md"),
+        (Join-Path $agentConfigDir "MOBILE_GUIDELINES.md"),
+        (Join-Path $agentConfigDir "templates\SPEC_TEMPLATE.md"),
+        (Join-Path $agentConfigDir "templates\PLAN_TEMPLATE.md"),
+        (Join-Path $agentConfigDir "skills\flutter-guidelines\SKILL.md"),
+        (Join-Path $agentConfigDir "skills\dart-guidelines\SKILL.md"),
+        (Join-Path $agentConfigDir "prompts\spec-mobile.md")
+    )
+    $missingGuides = ($guidesAndTemplates | Where-Object { -not (Test-Path $_) }).Count
+    if ($missingGuides -eq 0) {
+        Write-Host "✓ Guías y plantillas : Instaladas en $agentConfigDir" -ForegroundColor $Green
+        $global:checksPass++
+    } else {
+        Write-Host "✗ Guías y plantillas : Faltan $missingGuides archivo(s) en $agentConfigDir" -ForegroundColor $Red
+        $global:checksFail++
+    }
+
     $genericPrompts = @(
         (Join-Path $agentConfigDir "prompts\generic-discovery.md"),
         (Join-Path $agentConfigDir "prompts\generic-fix-bug.md"),

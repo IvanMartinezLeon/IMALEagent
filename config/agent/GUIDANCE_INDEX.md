@@ -10,11 +10,20 @@
 iml/
 ├── README.md                           ⭐ Start here - Overview & quick links
 ├── INDEX.md                            ← You are here
+├── GENERIC_RULES.md                    📐 Working rules for any project (always applies)
+├── MOBILE_GUIDELINES.md                📱 What a mobile spec must cover
 ├── EXPLORATION_STRATEGY.md             🔍 Generic exploration guide (all projects)
 ├── BEST_PRACTICES.md                   ✅ Engineering standards (all projects)
 ├── templates/
+│   ├── SPEC_TEMPLATE.md                📋 Spec template (copy as SPEC.md)
+│   ├── PLAN_TEMPLATE.md                📋 Technical plan template (copy as PLAN.md)
 │   ├── project-exploration-guide.md    📋 Copy & customize for your project
 │   └── project-standards.md            📋 (Coming soon) Project-specific rules
+├── skills/
+│   ├── flutter-guidelines/             🐦 Flutter application standards
+│   └── dart-guidelines/                🎯 Dart code quality standards
+├── prompts/
+│   └── spec-mobile.md                  🚀 /spec-mobile — start a mobile specification
 └── examples/
     ├── exploration-flutter-keko.md     💡 Real example: Flutter/Keko project
     └── exploration-generic.md          💡 (Coming soon) Generic template example
@@ -27,11 +36,25 @@ iml/
 ### 👤 I'm a Developer (First Time Here)
 
 1. **Read:** [`README.md`](README.md) — Get oriented (5 min)
-2. **Read:** [`EXPLORATION_STRATEGY.md`](EXPLORATION_STRATEGY.md) — Learn how to search (10 min)
-3. **Reference:** [`BEST_PRACTICES.md`](BEST_PRACTICES.md) — Keep as guide (skim)
-4. **Look:** [`examples/`](#examples) — See real examples (5 min)
+2. **Read:** [`GENERIC_RULES.md`](GENERIC_RULES.md) — How we work on any task (5 min)
+3. **Read:** [`EXPLORATION_STRATEGY.md`](EXPLORATION_STRATEGY.md) — Learn how to search (10 min)
+4. **Reference:** [`BEST_PRACTICES.md`](BEST_PRACTICES.md) — Keep as guide (skim)
+5. **Look:** [`examples/`](#examples) — See real examples (5 min)
 
 **Time Needed:** ~20 minutes
+
+---
+
+### 🧭 I'm Starting a New Feature (or a Mobile App)
+
+1. **Read:** [`GENERIC_RULES.md`](GENERIC_RULES.md) — working rules
+2. **Copy:** [`templates/SPEC_TEMPLATE.md`](templates/SPEC_TEMPLATE.md) as `SPEC.md` in the feature folder
+3. **Complete it with:** [`MOBILE_GUIDELINES.md`](MOBILE_GUIDELINES.md) (mobile) plus the `flutter-guidelines`/`dart-guidelines` skills
+4. **Then:** copy [`templates/PLAN_TEMPLATE.md`](templates/PLAN_TEMPLATE.md) as `PLAN.md` and derive `TASKS.md`
+5. **Shortcut:** type `/spec-mobile` inside Pi to start the whole flow
+6. **Do not implement** until the spec is explicitly approved
+
+**Time Needed:** ~30 minutes
 
 ---
 
@@ -51,10 +74,10 @@ iml/
 
 1. **Go:** [`EXPLORATION_STRATEGY.md`](EXPLORATION_STRATEGY.md)
 2. **Choose:** Follow the 3-step hierarchy:
-   - ✅ Step 1: `code_intelligence_search` (semantic)
-   - ✅ Step 2: `code_intelligence_impact` (dependencies)
-   - ✅ Step 3: `bash grep` (verification, narrow scope only)
-3. **Result:** ~70% fewer tokens, faster, more accurate
+   - ✅ Step 1: map the structure (`ls`, `find -maxdepth`, `AGENTS.md`)
+   - ✅ Step 2: scoped search (`rg -n "symbol" <dir> -t <type>`, `rg -l` for file lists)
+   - ✅ Step 3: read/verify (`rg -n -A 20` or the read tool with offset/limit)
+3. **Result:** Fewer tokens, faster orientation, fewer missed call sites
 
 **Quick Reference:** See [Quick Reference Card](#quick-reference-card) below
 
@@ -70,9 +93,9 @@ iml/
 
 ### 📝 I Found a Pattern Worth Documenting
 
-1. **Add to:** Project's `docs/` folder or IML templates
-2. **Record:** Use `code_intelligence_record_learning()` to make it durable
-3. **Share:** Tell the team about it
+1. **Add to:** the project's `docs/` folder or the IML templates
+2. **Format:** rule + when it applies + prefer/avoid
+3. **Share:** tell the team about it
 
 ---
 
@@ -81,9 +104,15 @@ iml/
 | File | Purpose | Audience | Time |
 |------|---------|----------|------|
 | **README.md** | Overview, structure, getting started | Everyone | 5 min |
+| **GENERIC_RULES.md** | Working rules: scope, code, data, validation, docs | Everyone | 10 min |
+| **MOBILE_GUIDELINES.md** | What a mobile spec must cover | Mobile devs, analysts | 10 min |
 | **EXPLORATION_STRATEGY.md** | How to search codebases efficiently | Developers, all projects | 15 min |
 | **BEST_PRACTICES.md** | Engineering standards across languages | Leads, reviewers | 20 min |
+| **templates/SPEC_TEMPLATE.md** | Copy as `SPEC.md` and complete with the user | Devs, analysts | 15 min |
+| **templates/PLAN_TEMPLATE.md** | Copy as `PLAN.md` after the spec is approved | Devs, leads | 20 min |
 | **templates/project-exploration-guide.md** | Copy this to your project, customize | Project leads | 10 min |
+| **skills/flutter-guidelines** | Flutter application standards | Flutter devs | 15 min |
+| **skills/dart-guidelines** | Dart code quality standards | Dart devs | 15 min |
 | **examples/exploration-flutter-keko.md** | Real-world example with Keko/Flutter | Flutter devs, teams | 10 min |
 
 ---
@@ -92,22 +121,17 @@ iml/
 
 **Every codebase search follows this:**
 
-```dart
-// Step 1: Semantic search (understand the pattern)
-code_intelligence_search({ 
-  query: "what are you looking for?" 
-})
+```bash
+# Step 1: Map the structure (cheap orientation)
+ls -la && find . -maxdepth 3 -type d -not -path "*/node_modules/*"
 
-// Step 2: Dependency analysis (understand impact)
-code_intelligence_impact({ 
-  paths: ["path/to/file"] 
-})
+# Step 2: Scoped search (know the directory and the symbol)
+rg -n "symbol" path/to/module/ -t ts -m 10
+rg "symbol\(" path/ -l -t ts        # file lists / call sites
 
-// Step 3: Exact verification (narrow scope only)
-bash grep -n "exact_string" path/to/file.ext
+# Step 3: Read and verify (only what you need)
+rg -n "symbol" -A 20 path/to/file.ts
 ```
-
-**Result:** 60–80% fewer tokens ✨
 
 ---
 
@@ -116,7 +140,6 @@ bash grep -n "exact_string" path/to/file.ext
 ### Core Resources
 - **IMALEagent Main:** `../README.md` (main repo)
 - **Keko Project:** Example Flutter project following these standards
-- **Code Intelligence:** Run `/code-intelligence-doctor` in Pi
 
 ### External
 - **Flutter i18n:** https://flutter.dev/docs/development/accessibility-and-localization/internationalization
@@ -169,22 +192,23 @@ A: Create an issue or PR referencing this folder.
 
 ### For Beginners
 1. IML/README.md
-2. IML/EXPLORATION_STRATEGY.md
-3. IML/examples/exploration-flutter-keko.md (if Flutter)
-4. Practice with a real project
+2. IML/GENERIC_RULES.md
+3. IML/EXPLORATION_STRATEGY.md
+4. IML/examples/exploration-flutter-keko.md (if Flutter)
+5. Practice with a real project
 
 ### For Leads
 1. IML/README.md
-2. IML/EXPLORATION_STRATEGY.md
-3. IML/BEST_PRACTICES.md
-4. Copy & customize templates for your project
-5. Train your team
+2. IML/GENERIC_RULES.md
+3. IML/EXPLORATION_STRATEGY.md
+4. IML/BEST_PRACTICES.md
+5. IML/MOBILE_GUIDELINES.md + SPEC/PLAN templates
+6. Train your team
 
 ### For Architects
 1. IML/BEST_PRACTICES.md
 2. Review IML/ for patterns
-3. Contribute improvements
-4. Record learnings via code_intelligence
+3. Contribute improvements to the guides and templates
 
 ---
 

@@ -81,6 +81,13 @@ assert_file "${AGENT_CONFIG_DIR}/extensions/ai-router.ts" "extensión ai-router.
 assert_file "${AGENT_CONFIG_DIR}/extensions/imale-preset.ts" "extensión imale-preset.ts instalada"
 assert_file "${AGENT_CONFIG_DIR}/prompts/generic-discovery.md" "prompt workflow generic-discovery instalado"
 assert_file "${AGENT_CONFIG_DIR}/themes/imale-theme.json" "tema imale-theme instalado"
+assert_file "${AGENT_CONFIG_DIR}/GENERIC_RULES.md" "reglas genéricas instaladas"
+assert_file "${AGENT_CONFIG_DIR}/MOBILE_GUIDELINES.md" "guías mobile instaladas"
+assert_file "${AGENT_CONFIG_DIR}/templates/SPEC_TEMPLATE.md" "plantilla SPEC instalada"
+assert_file "${AGENT_CONFIG_DIR}/templates/PLAN_TEMPLATE.md" "plantilla PLAN instalada"
+assert_file "${AGENT_CONFIG_DIR}/skills/flutter-guidelines/SKILL.md" "skill flutter-guidelines instalada"
+assert_file "${AGENT_CONFIG_DIR}/skills/dart-guidelines/SKILL.md" "skill dart-guidelines instalada"
+assert_file "${AGENT_CONFIG_DIR}/prompts/spec-mobile.md" "prompt spec-mobile instalado"
 assert_file "${AGENT_CONFIG_DIR}/.imale-manifest" "manifiesto escrito"
 assert_no_file "${AGENT_CONFIG_DIR}/chains" "no se instala ningún directorio chains/"
 

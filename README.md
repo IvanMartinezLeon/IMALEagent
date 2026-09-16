@@ -4,7 +4,7 @@ Repositorio de **instalación, configuración y onboarding técnico** para un en
 
 Su función principal es dejar preparado un agente de desarrollo con una configuración homogénea, orientada a:
 
-- descubrimiento estructural con **Code Intelligence**
+- exploración dirigida y acotada del código base
 - gestión de contexto pesado con **context-mode**
 - automatización y delegación con **subagentes**
 - extensibilidad mediante **extensions**, **skills** y **themes** propios
@@ -77,13 +77,13 @@ Se copia `config/agent/*` a `~/.pi/agent`, incluyendo:
 ### Integraciones operativas
 - `context-mode` como MCP lazy-loaded
 - extensión `ai-router` para routing híbrido
-- launcher `pi` (comando `imaleagent`) orientado a contexto por proyecto
+- launcher `pi` (comando `IMALEagent`) orientado a contexto por proyecto
 
 ---
 
 ## Arquitectura del repositorio
 
-El repositorio está organizado en dos capas:
+El repositorio está organizado en tres capas:
 
 ### 1. Capa de instalación: `install/`
 Contiene scripts multiplataforma y documentación operativa.
@@ -91,7 +91,7 @@ Contiene scripts multiplataforma y documentación operativa.
 Responsabilidades:
 - instalar IMALEagent y paquetes asociados
 - copiar configuración al home del usuario
-- dejar disponible el comando `imaleagent` (y `pi` como alias)
+- dejar disponible el comando `IMALEagent` (y `pi` como alias)
 - validar instalación y entorno
 - documentar troubleshooting y flujo recomendado
 
@@ -106,6 +106,15 @@ Responsabilidades:
 - registrar subagentes y prompt workflows genéricos reutilizables
 - aplicar identidad visual IMALE
 
+### 3. Capa de guías de trabajo: `config/agent/*.md` y `config/agent/templates/`
+Contiene las reglas y plantillas reutilizables que el agente instalado carga en cada sesión.
+
+Responsabilidades:
+- definir reglas de trabajo genéricas (`GENERIC_RULES.md`)
+- cubrir especificaciones mobile (`MOBILE_GUIDELINES.md`)
+- ofrecer plantillas de SPEC y PLAN reutilizables
+- servir de material de onboarding
+
 ---
 
 ## Mapa rápido del repo
@@ -115,13 +124,14 @@ Responsabilidades:
 ├── config/
 │   └── agent/
 │       ├── APPEND_SYSTEM.md          # reglas de sistema añadidas al agente
+│       ├── GENERIC_RULES.md          # reglas de trabajo reutilizables
+│       ├── MOBILE_GUIDELINES.md      # puntos que cubrir en una spec mobile
 │       ├── BEST_PRACTICES.md         # estándares de ingeniería
-│       ├── EXPLORATION_STRATEGY.md   # estrategia de exploración de codebases
+│       ├── EXPLORATION_STRATEGY.md   # estrategia de exploración (mapear → acotar → leer)
 │       ├── GUIDANCE_INDEX.md         # índice de recursos disponibles
 │       ├── settings.json             # ajustes base del agente
 │       ├── mcp.json                  # definición MCP, incluyendo context-mode
 │       ├── presets.json              # presets del agente (comando imale:preset)
-│       ├── logo.txt                  # cabecera ASCII
 │       ├── extensions/
 │       │   ├── ai-router.ts          # routing híbrido según tipo de prompt
 │       │   ├── imale-header.ts       # personalización visual/comportamiento UI
@@ -130,12 +140,9 @@ Responsabilidades:
 │       ├── agents/                   # subagentes genéricos reutilizables
 │       ├── prompts/                  # prompt workflows reutilizables
 │       ├── skills/                   # skills especializadas IMALE
-│       ├── prompts/                  # prompts de bienvenida
-│       ├── templates/                # plantillas de exploración de proyecto
+│       ├── templates/                # plantillas SPEC/PLAN y de exploración
 │       ├── examples/                 # ejemplos de exploración por tecnología
-│       └── themes/
-│           ├── imale-theme.json      # tema visual del agente
-│           └── imale-theme-colors.md # referencia de tokens de color
+│       └── themes/                   # tema visual del agente
 ├── install.sh                        # entry point cross-platform (curl|sh)
 ├── install/
 │   ├── install.sh                    # instalador Linux/macOS
@@ -143,11 +150,10 @@ Responsabilidades:
 │   ├── install.bat                   # instalador Windows CMD
 │   ├── verify.*                      # validación post-instalación
 │   ├── uninstall.*                   # desinstalación
-│   ├── templates/                    # wrappers: comando `imaleagent` y alias `pi`
-│   ├── lib/                          # helpers Node: merge de config, manifiesto, desinstalación
+│   ├── templates/                    # wrappers y plantillas auxiliares
 │   └── *.md                          # guías operativas
-└── scripts/
-    └── build-release.sh              # genera release tarball para curl|sh
+├── scripts/
+│   └── build-release.sh              # genera release tarball para curl|sh
 ```
 
 ---
@@ -159,18 +165,19 @@ Después de la limpieza documental, la estructura recomendada del repositorio qu
 ```text
 .
 ├── README.md                        # visión general, onboarding y arquitectura
-├── install.sh                       # entry point cross-platform (curl|sh)
 ├── config/
-│   └── agent/                       # configuración fuente que se copia a ~/.pi/agent
+│   └── agent/                      # configuración fuente que se copia a ~/.pi/agent
 ├── install/
-│   ├── README.md                    # guía principal de instalación y routing
-│   ├── SETUP_GUIDE.md               # validación, troubleshooting y diagnóstico
-│   ├── install.*                    # instaladores por plataforma
-│   ├── verify.*                     # scripts de verificación
-│   ├── uninstall.*                  # scripts de desinstalación
-│   └── templates/                   # wrappers auxiliares usados por los instaladores
-└── scripts/
-    └── build-release.sh             # genera el release tarball de curl|sh
+│   ├── README.md                   # guía principal de instalación y routing
+│   ├── SETUP_GUIDE.md              # validación, troubleshooting y diagnóstico
+│   ├── install.*                   # instaladores por plataforma
+│   ├── verify.*                    # scripts de verificación
+│   ├── uninstall.*                 # scripts de desinstalación
+│   ├── templates/                  # wrappers auxiliares usados por los instaladores
+│   └── lib/                        # helpers Node: merge de config, manifiesto, desinstalación
+├── scripts/
+│   ├── build-release.sh            # genera el release tarball de curl|sh
+│   └── test-install.sh             # test E2E de instalación/desinstalación
 ```
 
 ### Criterio de mantenimiento
@@ -205,26 +212,21 @@ Requisitos mínimos:
 **macOS / Linux / Windows (Git Bash / WSL):**
 
 ```bash
-curl -fsSL https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.sh | sh
 ```
 
-**Windows (PowerShell o CMD):**
-
-No hay one-liner: los instaladores de Windows se ejecutan desde el árbol del
-repositorio, porque `install\install.ps1` resuelve `config\agent` a partir de su
-propia ubicación (`$PSScriptRoot`). Descarga la release, descomprímela y ejecuta
-el instalador:
+**Windows PowerShell:**
 
 ```powershell
-$tmp = Join-Path $env:TEMP "imaleagent"
-New-Item -ItemType Directory -Force -Path $tmp | Out-Null
-iwr -useb https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download/imaleagent.tar.gz -OutFile "$tmp\imaleagent.tar.gz"
-tar -xzf "$tmp\imaleagent.tar.gz" -C $tmp
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-& "$tmp\install\install.ps1"
+iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.ps1 | iex
 ```
 
-En CMD, tras descomprimir: `"%TEMP%\imaleagent\install\install.bat"`.
+**Windows CMD:**
+
+```bat
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.bat -o install.bat && install.bat
+```
 
 #### Opción desde el repositorio clonado
 
@@ -289,17 +291,15 @@ Una vez dentro de Pi, el flujo operativo recomendado es:
 ```text
 /login
 /router-status
-/code-intelligence-doctor
-/enable-code-intelligence
 /mcp
 ```
 
 ### Para descubrimiento estructural
-Usa primero:
+Mapea primero la estructura y después acota la búsqueda:
 
-- `code_intelligence_search`
-- `code_intelligence_impact`
-- `code_intelligence_analyze_changes`
+- `ls`, `find -maxdepth` y `AGENTS.md` para orientarte
+- `rg -n "symbol" <directorio> -t <tipo>` para localizar uso
+- `rg "symbol\(" <path> -l` para listar consumidores
 
 Úsalo para preguntas como:
 - dónde está implementado algo
@@ -373,7 +373,7 @@ Responsabilidades principales:
 - detectar capacidad del entorno (`router_status`)
 - clasificar el prompt en modos como `general`, `structural`, `review` y `debug-heavy`
 - inyectar reglas de routing en el system prompt
-- sugerir `code_intelligence_*` antes de hacer exploración amplia
+- sugerir búsqueda acotada (`rg` con ruta y filtro de tipo) antes de exploración amplia
 - sugerir subagentes y prompt workflows genéricos cuando encajan con la tarea
 - advertir cuando conviene usar `context-mode`
 
@@ -437,6 +437,8 @@ El repo incorpora skills para tareas específicas (`config/agent/skills/`):
 - `sync`
 - `testing`
 - `workflow-coordination`
+- `flutter-guidelines` (móvil)
+- `dart-guidelines` (móvil)
 
 ---
 
@@ -467,17 +469,31 @@ Además de los scripts `verify.*`, el stack recomienda estas comprobaciones:
 
 ```text
 /router-status
-/code-intelligence-doctor
-/enable-code-intelligence
 /mcp
 ```
 
 Qué valida cada una:
 
-- `/router-status`: confirma si el routing híbrido detecta correctamente `code-intelligence`, `subagentes` y `context-mode`
-- `/code-intelligence-doctor`: verifica la disponibilidad de Code Intelligence
-- `/enable-code-intelligence`: activa indexación local para el repo actual
+- `/router-status`: confirma si el routing híbrido detecta correctamente `subagentes` y `context-mode`
 - `/mcp`: comprueba accesibilidad de MCPs y tools externas
+
+---
+
+## Plantillas de trabajo incluidas
+
+El repositorio incluye plantillas reutilizables en `config/agent/templates/`:
+
+- `SPEC_TEMPLATE.md` → qué debe cumplirse (se copia como `SPEC.md`)
+- `PLAN_TEMPLATE.md` → cómo se implementa (se copia como `PLAN.md`)
+- `project-exploration-guide.md` → estrategia de exploración por proyecto
+
+Guías complementarias en `config/agent/`:
+
+- `GENERIC_RULES.md` → reglas de trabajo aplicables a cualquier tarea
+- `MOBILE_GUIDELINES.md` → puntos que debe cubrir la spec de una app mobile
+- skills `flutter-guidelines` y `dart-guidelines` → directrices técnicas
+
+Arranque rápido de una especificación mobile: `/spec-mobile`
 
 ---
 
@@ -512,9 +528,10 @@ Si acabas de llegar al proyecto, el recorrido mínimo recomendado es:
 2. ejecuta el instalador de tu plataforma en `install/`
 3. ejecuta el verificador correspondiente
 4. abre IMALEagent dentro de un proyecto real
-5. lanza `/router-status` y activa Code Intelligence
+5. lanza `/router-status` para confirmar subagentes y context-mode
 6. revisa `install/README.md` para ver el uso de subagentes y prompt workflows genéricos
 7. prueba al menos uno de estos flujos: `generic-discovery` o `generic-implement-safe`
+8. revisa `config/agent/GENERIC_RULES.md` y las plantillas de SPEC/PLAN antes de empezar una funcionalidad
 
 Con eso deberías entender:
 - qué instala este repo

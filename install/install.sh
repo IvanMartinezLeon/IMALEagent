@@ -123,6 +123,31 @@ verify_subagent_config() {
 	fi
 }
 
+# Guías y plantillas del flujo SPEC -> PLAN -> TASKS y del soporte mobile.
+verify_guides_and_templates() {
+	local required=(
+		"GENERIC_RULES.md"
+		"MOBILE_GUIDELINES.md"
+		"templates/SPEC_TEMPLATE.md"
+		"templates/PLAN_TEMPLATE.md"
+		"skills/flutter-guidelines/SKILL.md"
+		"skills/dart-guidelines/SKILL.md"
+		"prompts/spec-mobile.md"
+	)
+	local missing=0
+	for f in "${required[@]}"; do
+		if [ ! -f "${AGENT_CONFIG_DIR}/${f}" ]; then
+			((missing++))
+		fi
+	done
+	if [ ${missing} -eq 0 ]; then
+		echo -e "${GREEN}✓ Guías y plantillas${NC}: Copiadas correctamente"
+	else
+		echo -e "${RED}✗ Guías y plantillas${NC}: Faltan ${missing} archivo(s) — la configuración no se copió completamente"
+		return 1
+	fi
+}
+
 echo -e "${YELLOW}Instalando IMALEagent...${NC}"
 if ! npm install -g --loglevel=error --ignore-scripts @earendil-works/pi-coding-agent >/dev/null 2>&1; then
 	echo -e "${RED}✗ Error: No se pudo instalar @earendil-works/pi-coding-agent${NC}"
@@ -134,6 +159,7 @@ install_config_stage "bin/pi" "bin/imaleagent"
 echo -e "${GREEN}✓ Configuración copiada ${NC}"
 echo -e "${GREEN}✓ Extensiones del agente instaladas${NC} (ai-router, imale-header, imale-preset)"
 verify_subagent_config
+verify_guides_and_templates
 
 echo -e "${YELLOW}Instalando y activando paquetes...${NC}"
 PI_BIN="$(resolve_real_pi_bin || true)"

@@ -149,6 +149,29 @@ if command -v pi &>/dev/null; then
 		((CHECKS_FAILED++))
 	fi
 
+	GUIDES_AND_TEMPLATES=(
+		"GENERIC_RULES.md"
+		"MOBILE_GUIDELINES.md"
+		"templates/SPEC_TEMPLATE.md"
+		"templates/PLAN_TEMPLATE.md"
+		"skills/flutter-guidelines/SKILL.md"
+		"skills/dart-guidelines/SKILL.md"
+		"prompts/spec-mobile.md"
+	)
+	MISSING_GUIDES=0
+	for guide_file in "${GUIDES_AND_TEMPLATES[@]}"; do
+		if [ ! -f "${AGENT_CONFIG_DIR}/${guide_file}" ]; then
+			((MISSING_GUIDES++))
+		fi
+	done
+	if [ ${MISSING_GUIDES} -eq 0 ]; then
+		echo -e "${GREEN}✓ Guías y plantillas${NC}: Instaladas en ${AGENT_CONFIG_DIR}"
+		((CHECKS_PASSED++))
+	else
+		echo -e "${RED}✗ Guías y plantillas${NC}: Faltan ${MISSING_GUIDES} archivo(s) en ${AGENT_CONFIG_DIR}"
+		((CHECKS_FAILED++))
+	fi
+
 	GENERIC_PROMPTS=(
 		"generic-discovery.md"
 		"generic-fix-bug.md"

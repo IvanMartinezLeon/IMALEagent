@@ -147,6 +147,22 @@ if %errorlevel% equ 0 (
         set /a checks_fail+=1
     )
 
+    set /a missing_guides=0
+    if not exist "!AGENT_CONFIG_DIR!\GENERIC_RULES.md" set /a missing_guides+=1
+    if not exist "!AGENT_CONFIG_DIR!\MOBILE_GUIDELINES.md" set /a missing_guides+=1
+    if not exist "!AGENT_CONFIG_DIR!\templates\SPEC_TEMPLATE.md" set /a missing_guides+=1
+    if not exist "!AGENT_CONFIG_DIR!\templates\PLAN_TEMPLATE.md" set /a missing_guides+=1
+    if not exist "!AGENT_CONFIG_DIR!\skills\flutter-guidelines\SKILL.md" set /a missing_guides+=1
+    if not exist "!AGENT_CONFIG_DIR!\skills\dart-guidelines\SKILL.md" set /a missing_guides+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\spec-mobile.md" set /a missing_guides+=1
+    if !missing_guides! equ 0 (
+        echo [OK] Guías y plantillas: Instaladas en !AGENT_CONFIG_DIR!
+        set /a checks_pass+=1
+    ) else (
+        echo [FAIL] Guías y plantillas: Faltan !missing_guides! archivo^(s^) en !AGENT_CONFIG_DIR!
+        set /a checks_fail+=1
+    )
+
     set /a missing_generic_prompts=0
     if not exist "!AGENT_CONFIG_DIR!\prompts\generic-discovery.md" set /a missing_generic_prompts+=1
     if not exist "!AGENT_CONFIG_DIR!\prompts\generic-fix-bug.md" set /a missing_generic_prompts+=1
