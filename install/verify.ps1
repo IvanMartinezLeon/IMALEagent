@@ -32,7 +32,7 @@ Write-Host ""
 Check-Command "node" "Node.js"
 Check-Command "npm" "npm"
 Check-Command "pi" "IMALEagent"
-Check-Command "IMALEagent" "IMALEagent CLI"
+Check-Command "imaleagent" "IMALEagent CLI"
 
 Write-Host ""
 Write-Host "== Variables de Entorno (Opcional) ==" -ForegroundColor $Blue
@@ -74,6 +74,32 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         $global:checksFail++
     }
 
+    if ($piPackages -match "@catdaemon/pi-code-intelligence") {
+        Write-Host "✓ Code Intelligence : Instalado y activo" -ForegroundColor $Green
+        $global:checksPass++
+    } else {
+        Write-Host "✗ Code Intelligence : No detectado en 'pi list'" -ForegroundColor $Red
+        $global:checksFail++
+    }
+
+
+
+    if ($piPackages -match "pi-web-access") {
+        Write-Host "✓ Web Access : Instalado y activo" -ForegroundColor $Green
+        $global:checksPass++
+    } else {
+        Write-Host "✗ Web Access : No detectado en 'pi list'" -ForegroundColor $Red
+        $global:checksFail++
+    }
+
+    if ($piPackages -match "pi-ask-user") {
+        Write-Host "✓ Ask User : Instalado y activo" -ForegroundColor $Green
+        $global:checksPass++
+    } else {
+        Write-Host "✗ Ask User : No detectado en 'pi list'" -ForegroundColor $Red
+        $global:checksFail++
+    }
+
     $agentMcpConfig = Join-Path $agentConfigDir "mcp.json"
     if ((Test-Path $agentMcpConfig) -and ((Get-Content $agentMcpConfig -Raw) -match '"context-mode"')) {
         Write-Host "✓ context-mode MCP : Configurado en $agentMcpConfig" -ForegroundColor $Green
@@ -82,13 +108,13 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         Write-Host "⚠ context-mode MCP : No detectado en $agentMcpConfig" -ForegroundColor $Yellow
     }
 
-    $IMALEExtensions = @(
+    $imaleExtensions = @(
         (Join-Path $agentConfigDir "extensions\ai-router.ts"),
-        (Join-Path $agentConfigDir "extensions\IMALE-header.ts"),
-        (Join-Path $agentConfigDir "extensions\IMALE-preset.ts"),
+        (Join-Path $agentConfigDir "extensions\imale-header.ts"),
+        (Join-Path $agentConfigDir "extensions\imale-preset.ts"),
         (Join-Path $agentConfigDir "extensions\lib\shared-ui.ts")
     )
-    $missingExtensions = ($IMALEExtensions | Where-Object { -not (Test-Path $_) }).Count
+    $missingExtensions = ($imaleExtensions | Where-Object { -not (Test-Path $_) }).Count
     if ($missingExtensions -eq 0) {
         Write-Host "✓ Extensiones IMALE : Instaladas en $agentConfigDir\extensions" -ForegroundColor $Green
         $global:checksPass++
@@ -113,20 +139,6 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         $global:checksFail++
     }
 
-    $genericChains = @(
-        (Join-Path $agentConfigDir "chains\generic-discovery.chain.md"),
-        (Join-Path $agentConfigDir "chains\generic-implement-safe.chain.md"),
-        (Join-Path $agentConfigDir "chains\generic-research-and-plan.chain.md")
-    )
-    $missingGenericChains = ($genericChains | Where-Object { -not (Test-Path $_) }).Count
-    if ($missingGenericChains -eq 0) {
-        Write-Host "✓ Chains genéricas : Instaladas en $agentConfigDir\chains" -ForegroundColor $Green
-        $global:checksPass++
-    } else {
-        Write-Host "✗ Chains genéricas : Faltan $missingGenericChains archivo(s) en $agentConfigDir\chains" -ForegroundColor $Red
-        $global:checksFail++
-    }
-
     $guidesAndTemplates = @(
         (Join-Path $agentConfigDir "GENERIC_RULES.md"),
         (Join-Path $agentConfigDir "MOBILE_GUIDELINES.md"),
@@ -142,6 +154,25 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         $global:checksPass++
     } else {
         Write-Host "✗ Guías y plantillas : Faltan $missingGuides archivo(s) en $agentConfigDir" -ForegroundColor $Red
+        $global:checksFail++
+    }
+
+    $genericPrompts = @(
+        (Join-Path $agentConfigDir "prompts\generic-discovery.md"),
+        (Join-Path $agentConfigDir "prompts\generic-fix-bug.md"),
+        (Join-Path $agentConfigDir "prompts\generic-implement-safe.md"),
+        (Join-Path $agentConfigDir "prompts\generic-research-and-plan.md"),
+        (Join-Path $agentConfigDir "prompts\step-scout.md"),
+        (Join-Path $agentConfigDir "prompts\step-planner.md"),
+        (Join-Path $agentConfigDir "prompts\step-worker.md"),
+        (Join-Path $agentConfigDir "prompts\step-reviewer.md")
+    )
+    $missingGenericPrompts = ($genericPrompts | Where-Object { -not (Test-Path $_) }).Count
+    if ($missingGenericPrompts -eq 0) {
+        Write-Host "✓ Prompt workflows genéricos : Instalados en $agentConfigDir\prompts" -ForegroundColor $Green
+        $global:checksPass++
+    } else {
+        Write-Host "✗ Prompt workflows genéricos : Faltan $missingGenericPrompts archivo(s) en $agentConfigDir\prompts" -ForegroundColor $Red
         $global:checksFail++
     }
 } else {

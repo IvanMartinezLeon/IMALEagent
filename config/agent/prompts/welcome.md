@@ -12,15 +12,15 @@ IMALEagent
 
 Una vez dentro, usa estos comandos:
 
-## Subagentes y chains
+## Subagentes y prompt workflows
 
 Delega trabajo a especialistas:
 
 ```
-/run-chain generic-implement-safe -- describe tu tarea aquí
-/run-chain generic-fix-bug -- describe el bug aquí
-/run-chain generic-discovery -- explora esta parte del código
-/run-chain generic-research-and-plan -- investiga y planifica
+/prompt-workflow generic-implement-safe describe tu tarea aquí
+/prompt-workflow generic-fix-bug describe el bug aquí
+/prompt-workflow generic-discovery explora esta parte del código
+/prompt-workflow generic-research-and-plan investiga y planifica
 ```
 
 ## Agentes individuales

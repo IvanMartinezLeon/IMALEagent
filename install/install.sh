@@ -35,10 +35,19 @@ TEMPLATE_DIR="${SCRIPT_DIR}/templates"
 AGENT_CONFIG_DIR="${HOME}/.pi/agent"
 AGENT_BIN_DIR="${AGENT_CONFIG_DIR}/bin"
 WRAPPER_PATH="${AGENT_BIN_DIR}/pi"
+# La etapa de configuración (backup + copia + merge + manifiesto) vive en
+# lib/config-stage.sh para poder probarla de forma aislada.
+CONFIG_STAGE="${SCRIPT_DIR}/lib/config-stage.sh"
+if [ ! -f "${CONFIG_STAGE}" ]; then
+	echo -e "${RED}✗ Error: No se encontró ${CONFIG_STAGE}${NC}"
+	exit 1
+fi
+# shellcheck source=lib/config-stage.sh
+. "${CONFIG_STAGE}"
 
 append_path_block() {
 	local rc_file="$1"
-	local marker_start="# >>> IMALE agent PATH >>>"
+	local marker_start="# >>> IMALEagent PATH >>>"
 
 	mkdir -p "$(dirname "${rc_file}")"
 	touch "${rc_file}"
@@ -48,9 +57,9 @@ append_path_block() {
 	fi
 
 	cat >>"${rc_file}" <<'EOF'
-# >>> IMALE agent PATH >>>
+# >>> IMALEagent PATH >>>
 export PATH="$HOME/.pi/agent/bin:$PATH"
-# <<< IMALE agent PATH <<<
+# <<< IMALEagent PATH <<<
 EOF
 }
 
@@ -80,7 +89,7 @@ check_pi_package() {
 	local pkg="$1"
 	local label="$2"
 	local list_output
-	list_output="$(\"${PI_BIN}\" list 2>/dev/null || true)"
+	list_output="$("${PI_BIN}" list 2>/dev/null || true)"
 	if echo "${list_output}" | grep -q "${pkg}"; then
 		echo -e "${GREEN}✓ ${label}${NC}: Instalado y activo"
 		return 0
@@ -93,6 +102,8 @@ check_pi_package() {
 verify_subagent_config() {
 	local required=(
 		"generic-context-builder.md"
+		"generic-doc-writer.md"
+		"generic-fixer.md"
 		"generic-planner.md"
 		"generic-worker.md"
 		"generic-reviewer.md"
@@ -112,6 +123,7 @@ verify_subagent_config() {
 	fi
 }
 
+# Guías y plantillas del flujo SPEC -> PLAN -> TASKS y del soporte mobile.
 verify_guides_and_templates() {
 	local required=(
 		"GENERIC_RULES.md"
@@ -143,15 +155,9 @@ if ! npm install -g --loglevel=error --ignore-scripts @earendil-works/pi-coding-
 fi
 
 echo -e "${YELLOW}Copiando la configuración de IMALEagent...${NC}"
-if [ ! -d "${CONFIG_SOURCE_DIR}" ]; then
-	echo -e "${RED}✗ Error: No se encontró la carpeta de configuración en ${CONFIG_SOURCE_DIR}${NC}"
-	exit 1
-fi
-
-mkdir -p "${AGENT_CONFIG_DIR}"
-cp -R "${CONFIG_SOURCE_DIR}/." "${AGENT_CONFIG_DIR}/"
+install_config_stage "bin/pi" "bin/imaleagent"
 echo -e "${GREEN}✓ Configuración copiada ${NC}"
-echo -e "${GREEN}✓ Extensiones del agente instaladas${NC} (ai-router, IMALE-header, IMALE-preset)"
+echo -e "${GREEN}✓ Extensiones del agente instaladas${NC} (ai-router, imale-header, imale-preset)"
 verify_subagent_config
 verify_guides_and_templates
 
@@ -179,8 +185,44 @@ else
 	exit 1
 fi
 
+echo -e "${YELLOW}Instalando Code Intelligence...${NC}"
+if "${PI_BIN}" install npm:@catdaemon/pi-code-intelligence >/dev/null 2>&1; then
+	echo -e "${GREEN}✓ Paquete Code Intelligence instalado${NC}"
+else
+	echo -e "${RED}✗ Error al instalar Code Intelligence (@catdaemon/pi-code-intelligence)${NC}"
+	exit 1
+fi
+
+echo -e "${YELLOW}Instalando Web Access...${NC}"
+if "${PI_BIN}" install npm:pi-web-access >/dev/null 2>&1; then
+	echo -e "${GREEN}✓ Paquete Web Access instalado${NC}"
+else
+	echo -e "${RED}✗ Error al instalar Web Access (pi-web-access)${NC}"
+	exit 1
+fi
+
+echo -e "${YELLOW}Instalando Ask User...${NC}"
+if "${PI_BIN}" install npm:pi-ask-user >/dev/null 2>&1; then
+	echo -e "${GREEN}✓ Paquete Ask User instalado${NC}"
+else
+	echo -e "${RED}✗ Error al instalar Ask User (pi-ask-user)${NC}"
+	exit 1
+fi
+
+echo -e "${YELLOW}Verificando paquetes instalados...${NC}"
+check_pi_package "pi-subagents" "Coding Agent" || true
+check_pi_package "pi-mcp-adapter" "MCP Adapter" || true
+check_pi_package "@catdaemon/pi-code-intelligence" "Code Intelligence" || true
+check_pi_package "pi-web-access" "Web Access" || true
+check_pi_package "pi-ask-user" "Ask User" || true
+
 if [ ! -f "${TEMPLATE_DIR}/pi-unix-wrapper.sh" ]; then
 	echo -e "${RED}✗ Error: No se encontró la plantilla del wrapper en ${TEMPLATE_DIR}/pi-unix-wrapper.sh${NC}"
+	exit 1
+fi
+
+if [ ! -f "${TEMPLATE_DIR}/imaleagent-wrapper.sh" ]; then
+	echo -e "${RED}✗ Error: No se encontró la plantilla del wrapper en ${TEMPLATE_DIR}/imaleagent-wrapper.sh${NC}"
 	exit 1
 fi
 
@@ -189,10 +231,10 @@ PI_BIN_ESCAPED="$(printf '%s' "${PI_BIN}" | sed 's/[&|]/\\&/g')"
 sed "s|__PI_REAL_BIN__|${PI_BIN_ESCAPED}|g" "${TEMPLATE_DIR}/pi-unix-wrapper.sh" >"${WRAPPER_PATH}"
 chmod +x "${WRAPPER_PATH}"
 
-# Crear comando IMALEagent
-EURE_WRAPPER_PATH="${AGENT_BIN_DIR}/IMALEagent"
-sed "s|__PI_REAL_BIN__|${PI_BIN_ESCAPED}|g" "${TEMPLATE_DIR}/IMALEagent-wrapper.sh" >"${EURE_WRAPPER_PATH}"
-chmod +x "${EURE_WRAPPER_PATH}"
+# Crear comando imaleagent
+IMALE_WRAPPER_PATH="${AGENT_BIN_DIR}/imaleagent"
+sed "s|__PI_REAL_BIN__|${PI_BIN_ESCAPED}|g" "${TEMPLATE_DIR}/imaleagent-wrapper.sh" >"${IMALE_WRAPPER_PATH}"
+chmod +x "${IMALE_WRAPPER_PATH}"
 
 append_path_block "${HOME}/.profile"
 append_path_block "${HOME}/.bashrc"
@@ -211,9 +253,10 @@ fi
 
 echo ""
 echo -e "${BLUE}Next steps:${NC}"
-echo "  1. cd /your/project  &&  IMALEagent"
+echo "  1. cd /your/project  &&  imaleagent"
 echo "  2. /login  or  export ANTHROPIC_API_KEY=your-key"
-echo "  3. Docs: https://pi.dev/docs/latest"
+echo "  3. /code-intelligence-doctor  &&  /enable-code-intelligence"
+echo "  4. Docs: https://pi.dev/docs/latest"
 echo ""
 echo -e "${BLUE}Config installed:${NC} ${AGENT_CONFIG_DIR}"
 echo ""

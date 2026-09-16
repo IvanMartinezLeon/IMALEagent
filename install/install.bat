@@ -36,6 +36,11 @@ set "TEMPLATE_DIR=%SCRIPT_DIR%templates"
 set "AGENT_CONFIG_DIR=%USERPROFILE%\.pi\agent"
 set "AGENT_BIN_DIR=%AGENT_CONFIG_DIR%\bin"
 set "WRAPPER_PATH=%AGENT_BIN_DIR%\pi.cmd"
+set "MERGE_HELPER=%SCRIPT_DIR%lib\merge-config.mjs"
+set "MANIFEST_HELPER=%SCRIPT_DIR%lib\write-manifest.mjs"
+set "MANIFEST_PATH=%AGENT_CONFIG_DIR%\.imale-manifest"
+set "BACKUP_DIR=%AGENT_CONFIG_DIR%\.backup-%DATE:~-4%%DATE:~3,2%%DATE:~0,2%-%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%"
+set "BACKUP_DIR=%BACKUP_DIR: =0%"
 
 echo Instalando IMALEagent...
 echo.
@@ -54,11 +59,28 @@ if not exist "%CONFIG_SOURCE_DIR%" (
 )
 
 if not exist "%AGENT_CONFIG_DIR%" mkdir "%AGENT_CONFIG_DIR%"
+call :BackupExistingConfig
 xcopy "%CONFIG_SOURCE_DIR%\*" "%AGENT_CONFIG_DIR%\" /E /I /Y >nul
 if %errorlevel% geq 4 (
     echo [FAIL] Could not copy configuration files
     pause
     exit /b 1
+)
+if exist "%MERGE_HELPER%" (
+    call :MergeJsonConfig "settings.json"
+    call :MergeJsonConfig "mcp.json"
+) else (
+    echo [WARN] No se encontro %MERGE_HELPER%; settings.json y mcp.json se sobrescriben sin fusionar.
+)
+if exist "%MANIFEST_HELPER%" (
+    call node "%MANIFEST_HELPER%" "%CONFIG_SOURCE_DIR%" "%MANIFEST_PATH%" "bin/pi.cmd" "bin/imaleagent.cmd" >nul
+    if errorlevel 1 (
+        echo [WARN] No se pudo escribir el manifiesto de instalacion.
+    ) else (
+        echo [OK] Manifiesto de instalacion: %MANIFEST_PATH%
+    )
+) else (
+    echo [WARN] No se encontro %MANIFEST_HELPER%; el desinstalador no eliminara con precision.
 )
 echo [OK] Configuración copiada en %AGENT_CONFIG_DIR%
 
@@ -101,6 +123,35 @@ if errorlevel 1 (
 ) else (
     echo [OK] Paquete MCP Adapter instalado
 )
+echo [INFO] Instalando Code Intelligence...
+call "%PI_CMD%" install npm:@catdaemon/pi-code-intelligence >nul 2>nul
+if errorlevel 1 (
+    echo [FAIL] Error al instalar Code Intelligence (@catdaemon/pi-code-intelligence)
+    pause
+    exit /b 1
+) else (
+    echo [OK] Paquete Code Intelligence instalado
+)
+
+echo [INFO] Instalando Web Access...
+call "%PI_CMD%" install npm:pi-web-access >nul 2>nul
+if errorlevel 1 (
+    echo [FAIL] Error al instalar Web Access (pi-web-access)
+    pause
+    exit /b 1
+) else (
+    echo [OK] Paquete Web Access instalado
+)
+echo [INFO] Instalando Ask User...
+call "%PI_CMD%" install npm:pi-ask-user >nul 2>nul
+if errorlevel 1 (
+    echo [FAIL] Error al instalar Ask User (pi-ask-user)
+    pause
+    exit /b 1
+) else (
+    echo [OK] Paquete Ask User instalado
+)
+
 if not exist "%TEMPLATE_DIR%\pi.cmd" (
     echo [FAIL] No se encontró la plantilla del wrapper en %TEMPLATE_DIR%\pi.cmd
     pause
@@ -111,9 +162,9 @@ if not exist "%AGENT_BIN_DIR%" mkdir "%AGENT_BIN_DIR%"
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$template = Get-Content -Path '%TEMPLATE_DIR%\pi.cmd' -Raw; $content = $template.Replace('__PI_REAL_BIN__', '%PI_CMD%'); Set-Content -Path '%WRAPPER_PATH%' -Value $content -Encoding ASCII"
 if errorlevel 1 exit /b 1
 
-REM Crear comando IMALEagent
-if exist "%TEMPLATE_DIR%\IMALEagent.cmd" (
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "$template = Get-Content -Path '%TEMPLATE_DIR%\IMALEagent.cmd' -Raw; $content = $template.Replace('__PI_REAL_BIN__', '%PI_CMD%'); Set-Content -Path '%AGENT_BIN_DIR%\IMALEagent.cmd' -Value $content -Encoding ASCII"
+REM Crear comando imaleagent
+if exist "%TEMPLATE_DIR%\imaleagent.cmd" (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "$template = Get-Content -Path '%TEMPLATE_DIR%\imaleagent.cmd' -Raw; $content = $template.Replace('__PI_REAL_BIN__', '%PI_CMD%'); Set-Content -Path '%AGENT_BIN_DIR%\imaleagent.cmd' -Value $content -Encoding ASCII"
 )
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$dir = '%AGENT_BIN_DIR%'; $userPath = [Environment]::GetEnvironmentVariable('Path', 'User'); $parts = @(); if ($userPath) { $parts = $userPath.Split(';') | Where-Object { $_ -and $_.Trim() -ne '' } }; if (-not ($parts -contains $dir)) { [Environment]::SetEnvironmentVariable('Path', (($dir + ';' + ($parts -join ';')).Trim(';')), 'User') }"
@@ -132,11 +183,55 @@ if %errorlevel% equ 0 (
 
 echo.
 echo Next steps:
-echo   1. Start: cd /your/project  ^&^&  IMALEagent
+echo   1. Start: cd /your/project  ^&^&  imaleagent
 echo   2. Auth:  /login  or  set ANTHROPIC_API_KEY=your-key
-echo   3. Docs:  https://pi.dev/docs/latest
+echo   3. Repo:  /code-intelligence-doctor  ^&^&  /enable-code-intelligence
+echo   4. Docs:  https://pi.dev/docs/latest
 echo.
 echo Config: %AGENT_CONFIG_DIR%
 echo.
 
 pause
+exit /b 0
+
+REM ── Subrutinas ──────────────────────────────────────────────────
+
+:BackupExistingConfig
+set "BACKUP_COUNT=0"
+for /f "delims=" %%i in ('dir /b /a "%CONFIG_SOURCE_DIR%" 2^>nul') do (
+    if exist "%AGENT_CONFIG_DIR%\%%i" (
+        if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
+        xcopy "%AGENT_CONFIG_DIR%\%%i" "%BACKUP_DIR%\%%i" /E /I /Y >nul 2>&1
+        set /a BACKUP_COUNT+=1
+    )
+)
+if %BACKUP_COUNT% gtr 0 (
+    echo [OK] Copia de seguridad de la config previa: %BACKUP_DIR% ^(%BACKUP_COUNT% elemento^(s^)^)
+) else (
+    if exist "%BACKUP_DIR%" rd /s /q "%BACKUP_DIR%"
+)
+exit /b 0
+
+REM Fusiona un JSON del repo con el previo del usuario en lugar de sobrescribirlo.
+REM Imprescindible para no perder packages, provider/model ni MCPs propios.
+:MergeJsonConfig
+set "MERGE_REL=%~1"
+set "MERGE_INCOMING=%CONFIG_SOURCE_DIR%\%MERGE_REL%"
+set "MERGE_PREVIOUS=%BACKUP_DIR%\%MERGE_REL%"
+set "MERGE_TARGET=%AGENT_CONFIG_DIR%\%MERGE_REL%"
+if not exist "%MERGE_INCOMING%" exit /b 0
+if not exist "%MERGE_PREVIOUS%" exit /b 0
+set "MERGE_OUT=%TEMP%\imale-merge-%RANDOM%-%RANDOM%.json"
+call node "%MERGE_HELPER%" "%MERGE_INCOMING%" "%MERGE_PREVIOUS%" "%MERGE_OUT%"
+if errorlevel 1 (
+    if exist "%MERGE_OUT%" del /f /q "%MERGE_OUT%"
+    echo [WARN] %MERGE_REL%: no se pudo fusionar, se instalo la version del repo ^(copia previa: %MERGE_PREVIOUS%^)
+    exit /b 0
+)
+move /y "%MERGE_OUT%" "%MERGE_TARGET%" >nul
+if errorlevel 1 (
+    echo [WARN] %MERGE_REL%: no se pudo escribir %MERGE_TARGET% ^(version fusionada en %MERGE_OUT%^)
+    exit /b 0
+)
+echo [OK] %MERGE_REL% fusionado con la configuracion previa
+exit /b 0

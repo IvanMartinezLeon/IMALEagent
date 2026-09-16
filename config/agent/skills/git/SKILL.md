@@ -2,7 +2,7 @@
 name: git
 description: Specialist in version control workflows, conventions, and collaboration. Use when committing, reviewing PRs, resolving conflicts, or structuring branches.
 metadata:
-  author: IMALE.org
+  author: imale.dev
   version: "1.0"
 ---
 # Skill de Git — Control de Versiones

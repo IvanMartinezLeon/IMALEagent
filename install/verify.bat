@@ -81,6 +81,35 @@ if %errorlevel% equ 0 (
         set /a checks_fail+=1
     )
 
+    pi list 2>nul | findstr /C:"@catdaemon/pi-code-intelligence" >nul
+    if !errorlevel! equ 0 (
+        echo [OK] Code Intelligence: Instalado y activo
+        set /a checks_pass+=1
+    ) else (
+        echo [FAIL] Code Intelligence: No detectado en "pi list"
+        set /a checks_fail+=1
+    )
+
+
+
+    pi list 2>nul | findstr /C:"pi-web-access" >nul
+    if !errorlevel! equ 0 (
+        echo [OK] Web Access: Instalado y activo
+        set /a checks_pass+=1
+    ) else (
+        echo [FAIL] Web Access: No detectado en "pi list"
+        set /a checks_fail+=1
+    )
+
+    pi list 2>nul | findstr /C:"pi-ask-user" >nul
+    if !errorlevel! equ 0 (
+        echo [OK] Ask User: Instalado y activo
+        set /a checks_pass+=1
+    ) else (
+        echo [FAIL] Ask User: No detectado en "pi list"
+        set /a checks_fail+=1
+    )
+
     if exist "!AGENT_CONFIG_DIR!\mcp.json" (
         findstr /C:"\"context-mode\"" "!AGENT_CONFIG_DIR!\mcp.json" >nul
         if !errorlevel! equ 0 (
@@ -93,8 +122,8 @@ if %errorlevel% equ 0 (
 
     set /a missing_extensions=0
     if not exist "!AGENT_CONFIG_DIR!\extensions\ai-router.ts" set /a missing_extensions+=1
-    if not exist "!AGENT_CONFIG_DIR!\extensions\IMALE-header.ts" set /a missing_extensions+=1
-    if not exist "!AGENT_CONFIG_DIR!\extensions\IMALE-preset.ts" set /a missing_extensions+=1
+    if not exist "!AGENT_CONFIG_DIR!\extensions\imale-header.ts" set /a missing_extensions+=1
+    if not exist "!AGENT_CONFIG_DIR!\extensions\imale-preset.ts" set /a missing_extensions+=1
     if not exist "!AGENT_CONFIG_DIR!\extensions\lib\shared-ui.ts" set /a missing_extensions+=1
     if !missing_extensions! equ 0 (
         echo [OK] Extensiones IMALE: Instaladas en !AGENT_CONFIG_DIR!\extensions
@@ -118,18 +147,6 @@ if %errorlevel% equ 0 (
         set /a checks_fail+=1
     )
 
-    set /a missing_generic_chains=0
-    if not exist "!AGENT_CONFIG_DIR!\chains\generic-discovery.chain.md" set /a missing_generic_chains+=1
-    if not exist "!AGENT_CONFIG_DIR!\chains\generic-implement-safe.chain.md" set /a missing_generic_chains+=1
-    if not exist "!AGENT_CONFIG_DIR!\chains\generic-research-and-plan.chain.md" set /a missing_generic_chains+=1
-    if !missing_generic_chains! equ 0 (
-        echo [OK] Chains genéricas: Instaladas en !AGENT_CONFIG_DIR!\chains
-        set /a checks_pass+=1
-    ) else (
-        echo [FAIL] Chains genéricas: Faltan !missing_generic_chains! archivo^(s^) en !AGENT_CONFIG_DIR!\chains
-        set /a checks_fail+=1
-    )
-
     set /a missing_guides=0
     if not exist "!AGENT_CONFIG_DIR!\GENERIC_RULES.md" set /a missing_guides+=1
     if not exist "!AGENT_CONFIG_DIR!\MOBILE_GUIDELINES.md" set /a missing_guides+=1
@@ -143,6 +160,23 @@ if %errorlevel% equ 0 (
         set /a checks_pass+=1
     ) else (
         echo [FAIL] Guías y plantillas: Faltan !missing_guides! archivo^(s^) en !AGENT_CONFIG_DIR!
+        set /a checks_fail+=1
+    )
+
+    set /a missing_generic_prompts=0
+    if not exist "!AGENT_CONFIG_DIR!\prompts\generic-discovery.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\generic-fix-bug.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\generic-implement-safe.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\generic-research-and-plan.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\step-scout.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\step-planner.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\step-worker.md" set /a missing_generic_prompts+=1
+    if not exist "!AGENT_CONFIG_DIR!\prompts\step-reviewer.md" set /a missing_generic_prompts+=1
+    if !missing_generic_prompts! equ 0 (
+        echo [OK] Prompt workflows genéricos: Instalados en !AGENT_CONFIG_DIR!\prompts
+        set /a checks_pass+=1
+    ) else (
+        echo [FAIL] Prompt workflows genéricos: Faltan !missing_generic_prompts! archivo^(s^) en !AGENT_CONFIG_DIR!\prompts
         set /a checks_fail+=1
     )
 ) else (

@@ -2,7 +2,7 @@
 name: architecture
 description: Expert in software architecture, modularity, and system design. Use when evaluating structure, dependencies, or planning large refactors. Framework-agnostic.
 metadata:
-  author: IMALE.org
+  author: imale.dev
   version: "2.0"
 ---
 # Skill de Arquitectura de Software

@@ -2,7 +2,7 @@
 name: documentation
 description: Specialist in technical documentation, READMEs, and style guides. Use when generating API docs, architecture guides, or project overviews.
 metadata:
-  author: IMALE.org
+  author: imale.dev
   version: "1.0"
 ---
 # Skill de Documentación

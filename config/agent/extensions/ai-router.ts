@@ -7,8 +7,11 @@ import { join } from "node:path";
 type CapabilityState = {
   cwd: string;
   repoType: "javascript-typescript" | "generic";
+  codeIntelligenceInstalled: boolean;
+  codeIntelligenceSource?: string;
   subagentsInstalled: boolean;
   subagentsSource?: string;
+  repoCodeIntelligenceConfigured: boolean;
   contextModeConfigured: boolean;
   contextModeConfigPath?: string;
 };
@@ -30,13 +33,17 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
 
   async function refreshCapabilities(cwd: string): Promise<CapabilityState> {
     const contextModeConfig = detectContextModeConfig(cwd);
+    const codeIntelligence = detectInstalledPiPackage(cwd, "@catdaemon/pi-code-intelligence");
     const subagents = detectInstalledPiPackage(cwd, "pi-subagents");
 
     capabilities = {
       cwd,
       repoType: detectRepoType(cwd),
+      codeIntelligenceInstalled: codeIntelligence.installed,
+      codeIntelligenceSource: codeIntelligence.source,
       subagentsInstalled: subagents.installed,
       subagentsSource: subagents.source,
+      repoCodeIntelligenceConfigured: hasRepoCodeIntelligenceConfig(cwd),
       contextModeConfigured: Boolean(contextModeConfig),
       contextModeConfigPath: contextModeConfig ?? undefined,
     };
@@ -49,6 +56,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
 
     const parts: string[] = [];
     parts.push(capabilities.repoType === "javascript-typescript" ? "js/ts repo" : "generic repo");
+    parts.push(capabilities.codeIntelligenceInstalled ? "code-intelligence ready" : "code-intelligence missing");
     parts.push(capabilities.subagentsInstalled ? "subagents ready" : "subagents missing");
     parts.push(capabilities.contextModeConfigured ? "context-mode ready" : "context-mode missing");
     parts.push(`mode:${routerState.lastPromptMode}`);
@@ -59,8 +67,11 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     const lines = [
       `Repository type: ${capabilities.repoType}`,
       `Prompt mode: ${routerState.lastPromptMode}`,
+      `Code intelligence package: ${capabilities.codeIntelligenceInstalled ? "installed" : "missing"}`,
+      `Code intelligence source: ${capabilities.codeIntelligenceSource ?? "not detected"}`,
       `Subagents package: ${capabilities.subagentsInstalled ? "installed" : "missing"}`,
       `Subagents source: ${capabilities.subagentsSource ?? "not detected"}`,
+      `Repo-local code intelligence config: ${capabilities.repoCodeIntelligenceConfigured ? "present" : "absent"}`,
       `context-mode MCP: ${capabilities.contextModeConfigured ? `configured (${capabilities.contextModeConfigPath})` : "not configured"}`,
       `Routing policy: ${describeRoutingPolicy()}`,
     ];
@@ -70,7 +81,9 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
 
   function describeRoutingPolicy(): string {
     if (routerState.lastPromptMode === "structural") {
-      return "Map the structure, then run scoped searches (rg with path + type filter) before reading files";
+      return capabilities.codeIntelligenceInstalled
+        ? "Prefer code-intelligence search/impact before broad repo exploration"
+        : "Use focused built-in tools; code-intelligence is not installed";
     }
 
     if (routerState.lastPromptMode === "debug-heavy") {
@@ -80,19 +93,21 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     }
 
     if (routerState.lastPromptMode === "review") {
-      return "List all call sites (rg -l) and read targeted files before judging the change";
+      return capabilities.codeIntelligenceInstalled
+        ? "Prefer code-intelligence review and impact analysis, then read targeted files"
+        : "Use focused reads and built-in tools for review";
     }
 
     if (routerState.lastPromptMode === "implement") {
-      return "Delegate to generic-implement-safe chain via subagent tool";
+      return "Prefer one scripted workflow (subagent workflowScript), or /prompt-workflow generic-implement-safe";
     }
 
-    return "Use built-in tools normally; keep searches scoped and prefer context-mode when output grows";
+    return "Use built-in tools normally; prefer code-intelligence/context-mode when clearly beneficial";
   }
 
   pi.on("session_start", async (_event, ctx) => {
     routerState.lastPromptMode = "general";
-    pi.events.emit("IMALE:agent-mode", { mode: routerState.lastPromptMode });
+    pi.events.emit("imale:agent-mode", { mode: routerState.lastPromptMode });
     routerState.lastPrompt = undefined;
     await refreshCapabilities(ctx.cwd);
     setStatus(ctx);
@@ -107,26 +122,35 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     const promptText = typeof event.prompt === "string" ? event.prompt : "";
     routerState.lastPrompt = promptText;
     routerState.lastPromptMode = classifyPrompt(promptText);
-    pi.events.emit("IMALE:agent-mode", { mode: routerState.lastPromptMode });
+    pi.events.emit("imale:agent-mode", { mode: routerState.lastPromptMode });
     setStatus(ctx);
 
     const parts: string[] = [];
     parts.push("## Hybrid Routing");
     parts.push(`- Repository type: ${capabilities.repoType}.`);
     parts.push(`- Detected prompt mode: ${routerState.lastPromptMode}.`);
+    parts.push(`- code-intelligence package installed: ${capabilities.codeIntelligenceInstalled ? "yes" : "no"}.`);
     parts.push(`- pi-subagents package installed: ${capabilities.subagentsInstalled ? "yes" : "no"}.`);
+    parts.push(`- Repo-local code-intelligence config present: ${capabilities.repoCodeIntelligenceConfigured ? "yes" : "no"}.`);
     parts.push(`- context-mode MCP configured: ${capabilities.contextModeConfigured ? "yes" : "no"}.`);
     parts.push("");
     parts.push("Routing rules:");
-    parts.push(
-      "- Map the structure first (`ls`, `find -maxdepth`, `AGENTS.md`), then search scoped: `rg -n \"symbol\" <dir> -t <type>` with capped output, and `rg -l` to list files or call sites.",
-    );
-    parts.push(
-      "- Never grep or `rg` the repository root. Read files completely only when you are about to modify them; otherwise read targeted regions.",
-    );
-    parts.push(
-      "- Before changing a shared symbol, list its consumers with `rg \"symbol\\(\" <path> -l`.",
-    );
+
+    if (capabilities.codeIntelligenceInstalled) {
+      parts.push(
+        "- For architecture, related files, existing patterns, impacted callers/tests, or broad repo discovery, prefer `code_intelligence_search`, `code_intelligence_impact`, or `code_intelligence_analyze_changes` before wide `bash` or `read` exploration.",
+      );
+      parts.push(
+        "- If code intelligence is not active in this repo yet, use `/code-intelligence-doctor` and then `/enable-code-intelligence` once inside Pi.",
+      );
+      if (routerState.lastPromptMode === "review") {
+        parts.push("- For review tasks, prefer `/code-intelligence-review` before manual broad inspection.");
+      }
+    } else {
+      parts.push(
+        "- code-intelligence is not installed. Use focused built-in tools and reinstall IMALEagent if you want local code graph and impact analysis.",
+      );
+    }
 
     if (routerState.lastPromptMode === "debug-heavy" && capabilities.contextModeConfigured) {
       parts.push(
@@ -141,12 +165,15 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     }
 
     if (capabilities.subagentsInstalled) {
-      parts.push("");
-      parts.push(...getSubagentInstructions(promptText, routerState.lastPromptMode));
+      const subagentInstructions = getSubagentInstructions(promptText, routerState.lastPromptMode);
+      if (subagentInstructions.length > 0) {
+        parts.push("");
+        parts.push(...subagentInstructions);
+      }
     }
 
     parts.push("- Once you know the relevant files, switch to the built-in `read`, `edit`, `write`, and focused `bash` commands.");
-    parts.push("- Keep responses concise and avoid reading many unrelated files when a scoped search can narrow the target first.");
+    parts.push("- Keep responses concise and avoid reading many unrelated files when code-intelligence can narrow the search first.");
 
     return {
       systemPrompt: `${event.systemPrompt}\n\n${parts.join("\n")}`,
@@ -161,8 +188,8 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     if (!command) return undefined;
 
     if (ctx.hasUI) {
-      if (shouldWarnAboutBroadStructuralSearch(command, routerState)) {
-        ctx.ui.notify("Scope the search: prefer rg in a specific directory with a type filter, or rg -l for file lists.", "warning");
+      if (shouldWarnAboutBroadStructuralSearch(command, capabilities, routerState)) {
+        ctx.ui.notify("Prefer code_intelligence_search or code_intelligence_impact before broad structural searches.", "warning");
       }
 
       if (shouldWarnAboutLargeOutput(command, capabilities)) {
@@ -176,7 +203,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("router-status", {
-    description: "Show hybrid routing status for exploration, subagents, and context-mode",
+    description: "Show hybrid routing status for code-intelligence, subagents, and context-mode",
     handler: async (_args, ctx) => {
       await refreshCapabilities(ctx.cwd);
       setStatus(ctx);
@@ -200,10 +227,10 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "router_status",
     label: "Router Status",
-    description: "Inspect exploration, subagents, and context-mode readiness for the current repository.",
-    promptSnippet: "Check whether subagents and context-mode are ready before a repository exploration task.",
+    description: "Inspect code-intelligence, subagents, and context-mode readiness for the current repository.",
+    promptSnippet: "Check whether code-intelligence, subagents, and context-mode are ready before a repository exploration task.",
     promptGuidelines: [
-      "Use router_status at the start of a structural or review task when you need to know whether subagents and context-mode are available.",
+      "Use router_status at the start of a structural or review task when you need to know whether code-intelligence, subagents, and context-mode are available.",
     ],
     parameters: ROUTER_STATUS_PARAMS,
     async execute() {
@@ -224,8 +251,11 @@ function createCapabilityState(cwd: string): CapabilityState {
   return {
     cwd,
     repoType: "generic",
+    codeIntelligenceInstalled: false,
+    codeIntelligenceSource: undefined,
     subagentsInstalled: false,
     subagentsSource: undefined,
+    repoCodeIntelligenceConfigured: false,
     contextModeConfigured: false,
     contextModeConfigPath: undefined,
   };
@@ -242,6 +272,10 @@ function detectRepoType(cwd: string): CapabilityState["repoType"] {
   ];
 
   return markers.some((marker) => existsSync(join(cwd, marker))) ? "javascript-typescript" : "generic";
+}
+
+function hasRepoCodeIntelligenceConfig(cwd: string): boolean {
+  return existsSync(join(cwd, ".pi-code-intelligence.json")) || existsSync(join(cwd, ".pi", "code-intelligence.json"));
 }
 
 function detectInstalledPiPackage(cwd: string, packageName: string): { installed: boolean; source: string | null } {
@@ -323,61 +357,114 @@ function classifyPrompt(prompt: string): PromptMode {
 
 function getSubagentInstructions(prompt: string, mode: PromptMode): string[] {
   const normalized = prompt.toLowerCase();
-  const instructions: string[] = [];
-
-  instructions.push("### Subagent Dispatch");
-  instructions.push("You have the `subagent` tool available. Use it to delegate work to specialized subagents.");
-  instructions.push("When the user's request matches one of the patterns below, you MUST dispatch the corresponding chain or agent instead of doing the work yourself:");
-  instructions.push("");
+  const recipes: string[] = [];
 
   if (mode === "structural") {
-    instructions.push("**Structural discovery** → Use `subagent` to run `generic-discovery` chain:");
-    instructions.push("  subagent({ chainName: \"generic-discovery\", task: \"<original request>\" })");
-    instructions.push("");
+    recipes.push(
+      ...scriptedRecipe("Structural discovery", "/prompt-workflow generic-discovery", [
+        "const scout = await runs.run('scout', { agent: 'scout', task: '<original request>' });",
+        "return runs.run('context', { agent: 'generic-context-builder', task: '<original request>' + ' Scout findings: ' + scout.output });",
+      ]),
+    );
   }
 
   if (mode === "review") {
-    instructions.push("**Code review** → Use `subagent` to run `generic-parallel-review`:");
-    instructions.push("  subagent({ agent: \"generic-parallel-review\", task: \"<original request>\" })");
-    instructions.push("");
+    recipes.push(
+      ...scriptedRecipe("Code review", "/parallel-review", [
+        "return runs.run('review', { agent: 'generic-parallel-review', task: '<original request>' });",
+      ]),
+    );
   }
 
-  if (/(implement|implementation|implementar|refactor|refactorizar|fix|arregla|bug|feature|change|cambio|modify|modificar|update|actualizar|build|crear)/.test(normalized)) {
-    instructions.push("**Implementation / changes** → Use `subagent` to run `generic-implement-safe` chain:");
-    instructions.push("  subagent({ chainName: \"generic-implement-safe\", task: \"<original request>\" })");
-    instructions.push("");
+  if (BUGFIX_RE.test(normalized)) {
+    recipes.push(
+      ...scriptedRecipe("Bug fix", "/prompt-workflow generic-fix-bug", [
+        "const scout = await runs.run('scout', { agent: 'scout', task: '<original request>' });",
+        "const fix = await runs.run('fix', { agent: 'generic-fixer', task: '<original request>' + ' Diagnosis: ' + scout.output });",
+        "return runs.run('review', { agent: 'generic-reviewer', task: '<original request>' + ' Diagnosis: ' + scout.output + ' Fix: ' + fix.output });",
+      ]),
+    );
+  } else if (IMPLEMENT_RE.test(normalized)) {
+    recipes.push(
+      ...scriptedRecipe("Implementation / changes", "/prompt-workflow generic-implement-safe", [
+        "const scout = await runs.run('scout', { agent: 'scout', task: '<original request>' });",
+        "const plan = await runs.run('plan', { agent: 'generic-planner', task: '<original request>' + ' Scout findings: ' + scout.output });",
+        "const work = await runs.run('work', { agent: 'generic-worker', task: '<original request>' + ' Plan: ' + plan.output });",
+        "return runs.run('review', { agent: 'generic-reviewer', task: '<original request>' + ' Plan: ' + plan.output + ' Result: ' + work.output });",
+      ]),
+    );
   }
 
-  if (/(research|investiga|documentation|documentación|docs|compare|comparar|library|librer|framework|best practice|patrón|approach|enfoque)/.test(normalized)) {
-    instructions.push("**Research / investigation** → Use `subagent` to run `generic-research-and-plan` chain:");
-    instructions.push("  subagent({ chainName: \"generic-research-and-plan\", task: \"<original request>\" })");
-    instructions.push("");
+  if (RESEARCH_RE.test(normalized)) {
+    recipes.push(
+      ...scriptedRecipe("Research / investigation", "/prompt-workflow generic-research-and-plan", [
+        "const external = await runs.run('research', { agent: 'researcher', task: '<original request>' });",
+        "const local = await runs.run('scout', { agent: 'scout', task: '<original request>' });",
+        "return runs.run('plan', { agent: 'generic-planner', task: '<original request>' + ' External evidence: ' + external.output + ' Local context: ' + local.output });",
+      ]),
+    );
   }
 
-  instructions.push("**Fallback**: If the request does not match any pattern above, handle it directly with built-in tools.");
+  if (recipes.length === 0) {
+    return [];
+  }
+
+  const instructions: string[] = [];
+  instructions.push("### Subagent Dispatch");
+  instructions.push("You have the `subagent` tool available. Delegate only when the operator's request authorizes it.");
+  instructions.push("If you do delegate, use exactly one scripted workflow shaped like one of these patterns:");
+  instructions.push("");
+  instructions.push(...recipes);
+  instructions.push("**Fallback**: if no pattern fits, handle the request directly with built-in tools.");
   instructions.push("");
   instructions.push("Dispatch rules:");
-  instructions.push("- Pass the user's original request as the `task` parameter.");
-  instructions.push("- After the subagent returns, present the result to the user. Do NOT re-implement what the subagent already did.");
-  instructions.push("- If the subagent reports a blocker or asks a question, relay it to the user.");
-  instructions.push("- Do not modify files while a worker subagent is running. Let the subagent be the single writer.");
+  instructions.push("- Pass the operator's original request as the child `task`; never paraphrase it into a weaker request.");
+  instructions.push("- Keep one writer per working tree. Reviewer and scout steps are read-only.");
+  instructions.push("- After the workflow returns, present the result to the user. Do NOT re-implement what the child already did.");
+  instructions.push("- If a child reports a blocker or asks a question, relay it to the user instead of silently switching execution mode.");
 
   return instructions;
 }
 
-function shouldWarnAboutBroadStructuralSearch(command: string, state: RouterState): boolean {
+const IMPLEMENT_RE = /(implement|implementation|implementar|refactor|refactorizar|fix|arregla|bug|feature|change|cambio|modify|modificar|update|actualizar|build|crear)/;
+const BUGFIX_RE = /(bug|arregla|arreglar|fix|fallo|regres|crash|error|broken|roto)/;
+const RESEARCH_RE = /(research|investiga|documentation|documentación|docs|compare|comparar|library|librer|framework|best practice|patrón|approach|enfoque)/;
+
+/**
+ * Render a delegation pattern as a copy-ready `workflowScript` call.
+ *
+ * `runs.run(key, { agent, task })` is the only supported orchestration surface in
+ * pi-subagents; durable `.chain.md` files and `chainName` are rejected at runtime.
+ */
+function scriptedRecipe(heading: string, humanHint: string, scriptLines: string[]): string[] {
+  return [
+    `**${heading}** → one scripted workflow (human equivalent: \`${humanHint}\`):`,
+    "",
+    "```js",
+    "subagent({ async: true, workflowScript: [",
+    ...scriptLines.map((line) => `  ${JSON.stringify(line)},`),
+    '].join("\\n") });',
+    "```",
+    "",
+  ];
+}
+
+function shouldWarnAboutBroadStructuralSearch(command: string, capabilities: CapabilityState, state: RouterState): boolean {
+  if (!capabilities.codeIntelligenceInstalled) {
+    return false;
+  }
+
   if (state.lastPromptMode !== "structural" && state.lastPromptMode !== "review") {
     return false;
   }
 
   const normalized = command.toLowerCase();
+  const usesBroadSearch = /\b(rg|grep|find)\b/.test(normalized);
+  if (!usesBroadSearch) {
+    return false;
+  }
 
-  // Warn when the search scope is the repository root or unbounded.
-  const targetsRepoRoot = /\b(rg|grep|find)\b[^|;]*?(\s\.\s|\s\.$|\s\/\s|--no-ignore-vcs)/.test(normalized);
-  const recursiveGrep = /\bgrep\b[^|;]*-[a-z]*r/.test(normalized);
-  const broadGlob = /find\s+\.[^|;]*\s-name\s+['"]\*/.test(normalized);
-
-  return targetsRepoRoot || recursiveGrep || broadGlob;
+  return /(architecture|route|screen|repository|service|controller|component|hook|schema|caller|impact|references?|usage|feature|test)/.test(normalized);
 }
 
 function shouldWarnAboutLargeOutput(command: string, capabilities: CapabilityState): boolean {

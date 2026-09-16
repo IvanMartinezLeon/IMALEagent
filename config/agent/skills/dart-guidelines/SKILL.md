@@ -2,7 +2,7 @@
 name: dart-guidelines
 description: Expert in Dart code quality for Flutter projects. Use when writing, reviewing or refactoring Dart code (null safety, types, async, error handling, immutability, testing, module boundaries).
 metadata:
-  author: IMALE.org
+  author: imale.dev
   version: "1.0"
 ---
 # Dart Guidelines

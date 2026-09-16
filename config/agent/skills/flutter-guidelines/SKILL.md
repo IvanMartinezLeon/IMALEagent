@@ -2,7 +2,7 @@
 name: flutter-guidelines
 description: Expert in Flutter application standards. Use when building or reviewing Flutter apps (architecture, widgets, state/lifecycle, navigation, networking, persistence, connectivity, accessibility, performance, i18n, permissions, background work).
 metadata:
-  author: IMALE.org
+  author: imale.dev
   version: "1.0"
 ---
 # Flutter Guidelines

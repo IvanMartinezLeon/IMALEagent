@@ -41,7 +41,7 @@ Este repositorio evita que cada desarrollador tenga que configurar manualmente:
 - paquetes adicionales
 - MCPs necesarios
 - extensiones de routing
-- subagentes y chains genéricas reutilizables
+- subagentes y prompt workflows genéricos reutilizables
 - skills internas
 - tema visual y preferencias básicas
 - flujo recomendado para tareas de análisis, review y edición
@@ -70,7 +70,7 @@ Se copia `config/agent/*` a `~/.pi/agent`, incluyendo:
 - `APPEND_SYSTEM.md`
 - `extensions/`
 - `agents/`
-- `chains/`
+- `prompts/`
 - `skills/`
 - `themes/`
 
@@ -103,7 +103,7 @@ Responsabilidades:
 - activar MCPs
 - inyectar instrucciones de sistema adicionales
 - registrar extensiones y habilidades reutilizables
-- registrar subagentes y chains genéricas reutilizables
+- registrar subagentes y prompt workflows genéricos reutilizables
 - aplicar identidad visual IMALE
 
 ### 3. Capa de guías de trabajo: `config/agent/*.md` y `config/agent/templates/`
@@ -124,14 +124,24 @@ Responsabilidades:
 ├── config/
 │   └── agent/
 │       ├── APPEND_SYSTEM.md          # reglas de sistema añadidas al agente
+│       ├── GENERIC_RULES.md          # reglas de trabajo reutilizables
+│       ├── MOBILE_GUIDELINES.md      # puntos que cubrir en una spec mobile
+│       ├── BEST_PRACTICES.md         # estándares de ingeniería
+│       ├── EXPLORATION_STRATEGY.md   # estrategia de exploración (mapear → acotar → leer)
+│       ├── GUIDANCE_INDEX.md         # índice de recursos disponibles
 │       ├── settings.json             # ajustes base del agente
 │       ├── mcp.json                  # definición MCP, incluyendo context-mode
+│       ├── presets.json              # presets del agente (comando imale:preset)
 │       ├── extensions/
 │       │   ├── ai-router.ts          # routing híbrido según tipo de prompt
-│       │   └── IMALE-header.ts     # personalización visual/comportamiento UI
+│       │   ├── imale-header.ts       # personalización visual/comportamiento UI
+│       │   ├── imale-preset.ts       # selector interactivo de presets
+│       │   └── lib/shared-ui.ts      # helpers TUI compartidos
 │       ├── agents/                   # subagentes genéricos reutilizables
-│       ├── chains/                   # workflows genéricos reutilizables
+│       ├── prompts/                  # prompt workflows reutilizables
 │       ├── skills/                   # skills especializadas IMALE
+│       ├── templates/                # plantillas SPEC/PLAN y de exploración
+│       ├── examples/                 # ejemplos de exploración por tecnología
 │       └── themes/                   # tema visual del agente
 ├── install.sh                        # entry point cross-platform (curl|sh)
 ├── install/
@@ -163,7 +173,11 @@ Después de la limpieza documental, la estructura recomendada del repositorio qu
 │   ├── install.*                   # instaladores por plataforma
 │   ├── verify.*                    # scripts de verificación
 │   ├── uninstall.*                 # scripts de desinstalación
-│   └── templates/                  # wrappers auxiliares usados por los instaladores
+│   ├── templates/                  # wrappers auxiliares usados por los instaladores
+│   └── lib/                        # helpers Node: merge de config, manifiesto, desinstalación
+├── scripts/
+│   ├── build-release.sh            # genera el release tarball de curl|sh
+│   └── test-install.sh             # test E2E de instalación/desinstalación
 ```
 
 ### Criterio de mantenimiento
@@ -294,7 +308,7 @@ Mapea primero la estructura y después acota la búsqueda:
 - qué patrones locales existen ya en el repo
 
 ### Para subagentes y workflows genéricos
-Usa los agentes y chains genéricas instaladas globalmente cuando quieras delegar trabajo reutilizable entre proyectos.
+Usa los agentes y prompt workflows genéricos instalados globalmente cuando quieras delegar trabajo reutilizable entre proyectos.
 
 Ejemplos útiles:
 
@@ -310,8 +324,8 @@ Ejemplos útiles:
 Ejemplos de uso:
 
 ```text
-/run-chain generic-discovery -- entender esta parte del código
-/run-chain generic-implement-safe -- aplicar este cambio con validación
+/prompt-workflow generic-discovery entender esta parte del código
+/prompt-workflow generic-implement-safe aplicar este cambio con validación
 /run generic-parallel-review "Revisa este cambio con foco en regresiones, validación y mantenibilidad"
 ```
 
@@ -360,7 +374,7 @@ Responsabilidades principales:
 - clasificar el prompt en modos como `general`, `structural`, `review` y `debug-heavy`
 - inyectar reglas de routing en el system prompt
 - sugerir búsqueda acotada (`rg` con ruta y filtro de tipo) antes de exploración amplia
-- sugerir subagentes y chains genéricas cuando encajan con la tarea
+- sugerir subagentes y prompt workflows genéricos cuando encajan con la tarea
 - advertir cuando conviene usar `context-mode`
 
 ---
@@ -403,25 +417,28 @@ Permite delegar o paralelizar trabajo con subagentes.
 - tareas multi-fase con coordinación
 - workflows genéricos reutilizables entre proyectos
 
-En esta configuración se complementa con agentes y chains genéricas instaladas desde `config/agent/agents/` y `config/agent/chains/`.
+En esta configuración se complementa con agentes y prompt workflows genéricos instalados desde `config/agent/agents/` y `config/agent/prompts/`.
 
-Set incluido actualmente:
-- agentes: `generic-context-builder`, `generic-planner`, `generic-worker`, `generic-reviewer`, `generic-parallel-review`
-- chains: `generic-discovery`, `generic-implement-safe`, `generic-research-and-plan`
+Set incluido actualmente (`config/agent/agents/` y `config/agent/prompts/`):
+- agentes: `generic-context-builder`, `generic-doc-writer`, `generic-fixer`, `generic-parallel-review`, `generic-planner`, `generic-reviewer`, `generic-worker`
+- prompt workflows: `generic-discovery`, `generic-fix-bug`, `generic-implement-safe`, `generic-research-and-plan`
 
 ### Skills IMALE
-El repo incorpora skills para tareas específicas:
+El repo incorpora skills para tareas específicas (`config/agent/skills/`):
+- `api-design`
 - `architecture`
 - `documentation`
-- `IMALE-brain`
 - `fix`
+- `git`
 - `learn`
 - `review`
+- `security`
 - `spec-driven-development`
-- `status`
 - `sync`
 - `testing`
-- `ux`
+- `workflow-coordination`
+- `flutter-guidelines` (móvil)
+- `dart-guidelines` (móvil)
 
 ---
 
@@ -484,7 +501,7 @@ Arranque rápido de una especificación mobile: `/spec-mobile`
 
 Dentro de `install/` se mantiene solo la documentación operativa necesaria:
 
-- `install/README.md` → guía principal de instalación, routing y uso de subagentes/chains genéricas
+- `install/README.md` → guía principal de instalación, routing y uso de subagentes/prompt workflows genéricos
 - `install/SETUP_GUIDE.md` → instalación detallada, validación y troubleshooting
 
 ---
@@ -512,7 +529,7 @@ Si acabas de llegar al proyecto, el recorrido mínimo recomendado es:
 3. ejecuta el verificador correspondiente
 4. abre IMALEagent dentro de un proyecto real
 5. lanza `/router-status` para confirmar subagentes y context-mode
-6. revisa `install/README.md` para ver el uso de subagentes y chains genéricas
+6. revisa `install/README.md` para ver el uso de subagentes y prompt workflows genéricos
 7. prueba al menos uno de estos flujos: `generic-discovery` o `generic-implement-safe`
 8. revisa `config/agent/GENERIC_RULES.md` y las plantillas de SPEC/PLAN antes de empezar una funcionalidad
 

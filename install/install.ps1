@@ -32,6 +32,43 @@ function Write-Info {
     Write-Host $Message -ForegroundColor $Blue
 }
 
+function Backup-ExistingConfig {
+    param([string]$SourceDir, [string]$TargetDir, [string]$BackupDir)
+    $copied = 0
+    foreach ($item in Get-ChildItem -Path $SourceDir -Force) {
+        $target = Join-Path $TargetDir $item.Name
+        if (-not (Test-Path $target)) { continue }
+        New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null
+        Copy-Item -Path $target -Destination $BackupDir -Recurse -Force
+        $copied++
+    }
+    if ($copied -gt 0) {
+        Write-Success "Copia de seguridad de la config previa: $BackupDir ($copied elemento(s))"
+    } else {
+        Remove-Item -Path $BackupDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# Fusiona un JSON del repo con el previo del usuario en lugar de sobrescribirlo.
+# Imprescindible para no perder `packages`, provider/model ni MCPs propios.
+function Merge-JsonConfig {
+    param([string]$RelativePath, [string]$SourceDir, [string]$TargetDir, [string]$BackupDir, [string]$MergeHelper)
+    $incoming = Join-Path $SourceDir $RelativePath
+    $previous = Join-Path $BackupDir $RelativePath
+    $target = Join-Path $TargetDir $RelativePath
+    if (-not (Test-Path $incoming) -or -not (Test-Path $previous)) { return }
+
+    $merged = [System.IO.Path]::GetTempFileName()
+    & node $MergeHelper $incoming $previous $merged
+    if ($LASTEXITCODE -eq 0 -and (Get-Item $merged).Length -gt 0) {
+        Move-Item -Path $merged -Destination $target -Force
+        Write-Success "$RelativePath fusionado con la configuración previa"
+    } else {
+        Remove-Item -Path $merged -Force -ErrorAction SilentlyContinue
+        Write-Warning-Custom "$RelativePath`: no se pudo fusionar, se instaló la versión del repo (copia previa: $previous)"
+    }
+}
+
 Write-Header "IMALEagent Installer (Windows PowerShell)"
 Write-Host ""
 
@@ -60,6 +97,10 @@ Write-Host ""
 $configSourceDir = Join-Path (Split-Path -Parent $PSScriptRoot) "config\agent"
 $templateDir = Join-Path $PSScriptRoot "templates"
 $agentConfigDir = Join-Path $HOME ".pi\agent"
+$mergeHelper = Join-Path $PSScriptRoot "lib\merge-config.mjs"
+$manifestHelper = Join-Path $PSScriptRoot "lib\write-manifest.mjs"
+$manifestPath = Join-Path $agentConfigDir ".imale-manifest"
+$backupDir = Join-Path $agentConfigDir (".backup-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
 $agentBinDir = Join-Path $agentConfigDir "bin"
 $wrapperPath = Join-Path $agentBinDir "pi.cmd"
 
@@ -112,7 +153,21 @@ if (-not (Test-Path $configSourceDir)) {
 }
 
 New-Item -ItemType Directory -Path $agentConfigDir -Force | Out-Null
+if (-not (Test-Path $mergeHelper)) {
+    Write-Warning-Custom "No se encontró $mergeHelper; settings.json y mcp.json se sobrescribirán sin fusionar."
+}
+Backup-ExistingConfig -SourceDir $configSourceDir -TargetDir $agentConfigDir -BackupDir $backupDir
 Copy-Item -Path (Join-Path $configSourceDir "*") -Destination $agentConfigDir -Recurse -Force
+if (Test-Path $mergeHelper) {
+    Merge-JsonConfig -RelativePath "settings.json" -SourceDir $configSourceDir -TargetDir $agentConfigDir -BackupDir $backupDir -MergeHelper $mergeHelper
+    Merge-JsonConfig -RelativePath "mcp.json" -SourceDir $configSourceDir -TargetDir $agentConfigDir -BackupDir $backupDir -MergeHelper $mergeHelper
+}
+if (Test-Path $manifestHelper) {
+    & node $manifestHelper $configSourceDir $manifestPath "bin/pi.cmd" "bin/imaleagent.cmd" | Out-Null
+    Write-Success "Manifiesto de instalación: $manifestPath"
+} else {
+    Write-Warning-Custom "No se encontró $manifestHelper; el desinstalador no eliminará con precisión."
+}
 Write-Success "Configuración copiada en $agentConfigDir"
 
 Write-Info "Instalando y activando paquetes..."
@@ -141,6 +196,35 @@ if ($LASTEXITCODE -eq 0) {
     exit $LASTEXITCODE
 }
 
+Write-Info "Instalando Code Intelligence..."
+& $piExecutable install npm:@catdaemon/pi-code-intelligence >$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Success "Paquete Code Intelligence instalado"
+} else {
+    Write-Error-Custom "Error al instalar Code Intelligence (@catdaemon/pi-code-intelligence)"
+    exit $LASTEXITCODE
+}
+
+
+
+Write-Info "Instalando Web Access..."
+& $piExecutable install npm:pi-web-access >$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Success "Paquete Web Access instalado"
+} else {
+    Write-Error-Custom "Error al instalar Web Access (pi-web-access)"
+    exit $LASTEXITCODE
+}
+
+Write-Info "Instalando Ask User..."
+& $piExecutable install npm:pi-ask-user >$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Success "Paquete Ask User instalado"
+} else {
+    Write-Error-Custom "Error al instalar Ask User (pi-ask-user)"
+    exit $LASTEXITCODE
+}
+
 $wrapperTemplatePath = Join-Path $templateDir "pi.cmd"
 if (-not (Test-Path $wrapperTemplatePath)) {
     Write-Error-Custom "No se encontró la plantilla del wrapper en $wrapperTemplatePath"
@@ -152,13 +236,13 @@ $wrapperTemplate = Get-Content -Path $wrapperTemplatePath -Raw
 $wrapperContent = $wrapperTemplate.Replace('__PI_REAL_BIN__', $piExecutable)
 Set-Content -Path $wrapperPath -Value $wrapperContent -Encoding ASCII
 
-# Crear comando IMALEagent
-$eureWrapperTemplatePath = Join-Path $templateDir "IMALEagent.cmd"
-if (Test-Path $eureWrapperTemplatePath) {
-    $IMALEagentPath = Join-Path $agentBinDir "IMALEagent.cmd"
-    $eureTemplate = Get-Content -Path $eureWrapperTemplatePath -Raw
-    $eureContent = $eureTemplate.Replace('__PI_REAL_BIN__', $piExecutable)
-    Set-Content -Path $IMALEagentPath -Value $eureContent -Encoding ASCII
+# Crear comando imaleagent
+$imaleWrapperTemplatePath = Join-Path $templateDir "imaleagent.cmd"
+if (Test-Path $imaleWrapperTemplatePath) {
+    $imaleAgentPath = Join-Path $agentBinDir "imaleagent.cmd"
+    $imaleTemplate = Get-Content -Path $imaleWrapperTemplatePath -Raw
+    $imaleContent = $imaleTemplate.Replace('__PI_REAL_BIN__', $piExecutable)
+    Set-Content -Path $imaleAgentPath -Value $imaleContent -Encoding ASCII
 }
 
 Ensure-AgentBinOnUserPath -AgentBinDir $agentBinDir
@@ -178,9 +262,10 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
 
 Write-Host ""
 Write-Info "Next steps:"
-Write-Host "  1. Start: cd /your/project  &&  IMALEagent"
+Write-Host "  1. Start: cd /your/project  &&  imaleagent"
 Write-Host "  2. Auth:  /login  or  `$env:ANTHROPIC_API_KEY='your-key'"
-Write-Host "  3. Docs:  https://pi.dev/docs/latest"
+Write-Host "  3. Repo:  /code-intelligence-doctor  &&  /enable-code-intelligence"
+Write-Host "  4. Docs:  https://pi.dev/docs/latest"
 Write-Host ""
 Write-Info "Config: $agentConfigDir"
 Write-Host ""

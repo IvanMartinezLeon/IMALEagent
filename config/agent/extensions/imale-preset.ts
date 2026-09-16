@@ -1,14 +1,14 @@
 /**
  * IMALE Preset Selector
  *
- * Interactive TUI preset selector (IMALE:preset) with themed overlay.
+ * Interactive TUI preset selector (imale:preset) with themed overlay.
  * Cambia el comportamiento del agente entre modos: documentación, revisión,
  * implementación, debug, arquitectura, exploración y general.
  *
  * Integración:
  * - Inyecta instrucciones en el system prompt via before_agent_start
  * - Cambia herramientas activas y nivel de thinking por preset
- * - Emite evento IMALE:agent-mode para sincronizar el footer del header
+ * - Emite evento imale:agent-mode para sincronizar el footer del header
  * - Persiste el preset activo entre sesiones via pi.appendEntry
  * - Lee presets de ~/.pi/agent/presets.json con fallback built-in
  */
@@ -64,7 +64,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     thinkingLevel: "high",
     instructions:
       "Estás en MODO REVISIÓN. Tu objetivo es revisar código de forma exhaustiva y proponer mejoras.\n\nReglas:\n- Lee archivos completos (sin offset/limit) para tener contexto total\n- Busca: bugs, problemas de seguridad, code smells, falta de tests, strings sin traducir, violaciones de arquitectura, rendimiento\n- Para cada hallazgo: explica el problema, por qué es problemático y la solución propuesta\n- Clasifica hallazgos por severidad: 🔴 crítico, 🟠 alto, 🟡 medio, 🔵 bajo, ⚪ sugerencia\n- Verifica cobertura de tests y patrones de testing\n- Señala código muerto (principio YAGNI)\n- Revisa consistencia con el resto del código base\n- Comprueba que no haya secretos hardcodeados (tokens, passwords, API keys)\n- Al final, da un resumen ejecutivo con puntuación general y prioridades",
-    tools: ["read", "bash", "grep", "find", "ls", "rg"],
+    tools: ["read", "bash", "grep", "find", "ls", "rg", "code_intelligence_search", "code_intelligence_impact", "code_intelligence_analyze_changes", "web_search"],
   },
   implementacion: {
     label: "⚡ Implementación",
@@ -74,7 +74,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     thinkingLevel: "high",
     instructions:
       "Estás en MODO IMPLEMENTACIÓN. Tu objetivo es hacer cambios de código enfocados, correctos y bien probados.\n\nReglas:\n- Mantén el alcance ajustado. Haz exactamente lo que se pide, ni más ni menos\n- Lee archivos antes de editarlos para entender el estado actual\n- Haz ediciones quirúrgicas con edit (prefiere edit sobre write para archivos existentes)\n- Explica brevemente tu razonamiento antes de cada cambio\n- Sigue las convenciones del proyecto: estructura, naming, patrones, estilos\n- Ejecuta tests o type checks después de los cambios si el proyecto los tiene\n- Si encuentras complejidad inesperada, PARA y explica el problema en lugar de improvisar\n- Si no existe un plan o spec, pregunta antes de empezar cambios no triviales\n- No dejes código comentado, console.logs, o todo(s) sin resolver\n- Al terminar: resume lo que se hizo y nota trabajo pendiente o tests necesarios",
-    tools: ["read", "bash", "edit", "write", "rg"],
+    tools: ["read", "bash", "edit", "write", "rg", "code_intelligence_search", "code_intelligence_impact", "code_intelligence_analyze_changes"],
   },
   debug: {
     label: "◉ Debug",
@@ -83,7 +83,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     footerLabel: "debug",
     thinkingLevel: "high",
     instructions:
-      "Estás en MODO DEBUG. Tu objetivo es diagnosticar y resolver problemas técnicos de forma metódica.\n\nReglas:\n- Enfoque forense: primero entiende el problema, luego busca la causa raíz\n- Lee logs, trazas de error y salida de tests primero\n- Formula hipótesis antes de hacer cambios\n- Aísla variables: cambia una cosa a la vez\n- Usa salida verbosa/verbose cuando sea necesario\n- Si hay logs grandes (>50 líneas), usa context-mode (ctx_write/ctx_read) o guarda en archivo en vez de volcar en conversación\n- Documenta hallazgos intermedios para no perder contexto\n- Si usas subagentes, usa fork para no contaminar el contexto principal\n- Al resolver: explica la causa raíz y por qué la solución funciona\n- Si no encuentras la causa, resume lo descartado y sugiere siguientes pasos\n- Mapea la estructura y acota la búsqueda antes de tocar el código",
+      "Estás en MODO DEBUG. Tu objetivo es diagnosticar y resolver problemas técnicos de forma metódica.\n\nReglas:\n- Enfoque forense: primero entiende el problema, luego busca la causa raíz\n- Lee logs, trazas de error y salida de tests primero\n- Formula hipótesis antes de hacer cambios\n- Aísla variables: cambia una cosa a la vez\n- Usa salida verbosa/verbose cuando sea necesario\n- Si hay logs grandes (>50 líneas), usa context-mode (ctx_write/ctx_read) o guarda en archivo en vez de volcar en conversación\n- Documenta hallazgos intermedios para no perder contexto\n- Si usas subagentes, usa fork para no contaminar el contexto principal\n- Al resolver: explica la causa raíz y por qué la solución funciona\n- Si no encuentras la causa, resume lo descartado y sugiere siguientes pasos\n- Usa code_intelligence_search para entender cómo funciona el código antes de modificarlo",
   },
   arquitectura: {
     label: "⊡ Arquitectura",
@@ -92,7 +92,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     footerLabel: "arch",
     thinkingLevel: "high",
     instructions:
-      "Estás en MODO ARQUITECTURA. Tu objetivo es analizar y diseñar la estructura del sistema.\n\nReglas:\n- Mapea la estructura del proyecto antes de proponer cambios\n- Localiza los consumidores de cada símbolo o módulo antes de tocarlo\n- Analiza: acoplamiento, cohesión, separación de concerns, patrones, deuda técnica\n- Propón cambios estructurales con diagramas en Markdown (Mermaid si aplica)\n- Identifica riesgos arquitectónicos y trade-offs explícitamente\n- Para diseños nuevos: enumera componentes, responsabilidades, interfaces y flujo de datos\n- Evalúa si la arquitectura actual escala para los requisitos\n- Documenta decisiones y su justificación (ADR - Architecture Decision Record)\n- Sugiere mejoras incrementales, no rewriting completo a menos que sea necesario\n- Señala violaciones del principio de responsabilidad única y dependency inversion",
+      "Estás en MODO ARQUITECTURA. Tu objetivo es analizar y diseñar la estructura del sistema.\n\nReglas:\n- Usa code_intelligence_search para entender patrones existentes\n- Usa code_intelligence_impact para entender dependencias y acoplamiento\n- Analiza: acoplamiento, cohesión, separación de concerns, patrones, deuda técnica\n- Propón cambios estructurales con diagramas en Markdown (Mermaid si aplica)\n- Identifica riesgos arquitectónicos y trade-offs explícitamente\n- Para diseños nuevos: enumera componentes, responsabilidades, interfaces y flujo de datos\n- Evalúa si la arquitectura actual escala para los requisitos\n- Documenta decisiones y su justificación (ADR - Architecture Decision Record)\n- Sugiere mejoras incrementales, no rewriting completo a menos que sea necesario\n- Señala violaciones del principio de responsabilidad única y dependency inversion",
   },
   exploracion: {
     label: "🔍 Exploración",
@@ -101,7 +101,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     footerLabel: "explore",
     thinkingLevel: "medium",
     instructions:
-      "Estás en MODO EXPLORACIÓN. Tu objetivo es entender un código base nuevo o una parte desconocida del proyecto.\n\nReglas:\n- Sigue la jerarquía de 3 pasos: mapear estructura → `rg` acotado → `read` dirigido\n- Comienza con una vista general: estructura de directorios, tecnologías principales, patrones\n- Identifica: entry points, configuraciones clave, modelos de datos, flujos principales\n- Documenta hallazgos a medida que avanzas para no repetir exploración\n- Si encuentras tests, revísalos para entender el comportamiento esperado\n- Al final: resume la arquitectura, puntos clave y recomendaciones para trabajo futuro",
+      "Estás en MODO EXPLORACIÓN. Tu objetivo es entender un código base nuevo o una parte desconocida del proyecto.\n\nReglas:\n- Sigue la jerarquía de 3 pasos: code_intelligence_search → code_intelligence_impact → bash (solo verificación)\n- Comienza con una vista general: estructura de directorios, tecnologías principales, patrones\n- Identifica: entry points, configuraciones clave, modelos de datos, flujos principales\n- Documenta hallazgos a medida que avanzas para no repetir exploración\n- Si encuentras tests, revísalos para entender el comportamiento esperado\n- Usa code_intelligence_record_learning para patrones duraderos que descubras\n- Al final: resume la arquitectura, puntos clave y recomendaciones para trabajo futuro",
   },
 };
 
@@ -136,7 +136,7 @@ function loadPresets(cwd: string): PresetManifest {
 
 // ── Export ────────────────────────────────────────────────────────────────
 
-export default function IMALEPresetExtension(pi: ExtensionAPI) {
+export default function imalePresetExtension(pi: ExtensionAPI) {
   let presets: PresetManifest = {};
   let activeKey: string | undefined;
   let activePreset: Preset | undefined;
@@ -149,7 +149,7 @@ export default function IMALEPresetExtension(pi: ExtensionAPI) {
     const entries = ctx.sessionManager.getEntries();
     for (let i = entries.length - 1; i >= 0; i--) {
       const e = entries[i];
-      if (e.type === "custom" && (e as any).customType === "IMALE-preset-state") {
+      if (e.type === "custom" && (e as any).customType === "imale-preset-state") {
         const data = (e as any).data as { name?: string } | undefined;
         if (data?.name && presets[data.name]) {
           activeKey = data.name;
@@ -166,7 +166,7 @@ export default function IMALEPresetExtension(pi: ExtensionAPI) {
   // ── Persist preset state each turn ──────────────────────────────
   pi.on("turn_start", async () => {
     if (activeKey) {
-      pi.appendEntry("IMALE-preset-state", { name: activeKey });
+      pi.appendEntry("imale-preset-state", { name: activeKey });
     }
   });
 
@@ -199,8 +199,8 @@ export default function IMALEPresetExtension(pi: ExtensionAPI) {
       }
     }
 
-    // Emit event for header integration (IMALE-header.ts listens to this)
-    pi.events.emit("IMALE:agent-mode", { mode: key });
+    // Emit event for header integration (imale-header.ts listens to this)
+    pi.events.emit("imale:agent-mode", { mode: key });
 
     updateStatus(ctx);
   }
@@ -218,7 +218,7 @@ export default function IMALEPresetExtension(pi: ExtensionAPI) {
     pi.setActiveTools(allTools);
 
     // Emit reset event
-    pi.events.emit("IMALE:agent-mode", { mode: "general" });
+    pi.events.emit("imale:agent-mode", { mode: "general" });
 
     updateStatus(ctx);
   }
@@ -227,9 +227,9 @@ export default function IMALEPresetExtension(pi: ExtensionAPI) {
   function updateStatus(ctx: ExtensionContext) {
     if (activeKey && activePreset) {
       // Raw text sin ANSI: el footer custom lo formatea como botón
-      ctx.ui.setStatus("IMALE-preset", `${activePreset.emoji} ${activePreset.footerLabel}`);
+      ctx.ui.setStatus("imale-preset", `${activePreset.emoji} ${activePreset.footerLabel}`);
     } else {
-      ctx.ui.setStatus("IMALE-preset", undefined);
+      ctx.ui.setStatus("imale-preset", undefined);
     }
   }
 
@@ -284,9 +284,9 @@ export default function IMALEPresetExtension(pi: ExtensionAPI) {
     }
   }
 
-  // ── IMALE:preset command (con soporte para args directos) ────
-  pi.registerCommand("IMALE:preset", {
-    description: "Selector interactivo de presets del agente. Uso: /IMALE:preset [nombre]",
+  // ── imale:preset command (con soporte para args directos) ────
+  pi.registerCommand("imale:preset", {
+    description: "Selector interactivo de presets del agente. Uso: /imale:preset [nombre]",
     handler: async (args, ctx) => {
       if (args?.trim()) {
         const name = args.trim();
@@ -304,9 +304,9 @@ export default function IMALEPresetExtension(pi: ExtensionAPI) {
     },
   });
 
-  // ── Alias: /preset-IMALE for convenience ──────────────────────
-  pi.registerCommand("preset-IMALE", {
-    description: "Selector interactivo de presets del agente (alias de IMALE:preset)",
+  // ── Alias: /preset-imale for convenience ──────────────────────
+  pi.registerCommand("preset-imale", {
+    description: "Selector interactivo de presets del agente (alias de imale:preset)",
     handler: async (_args, ctx) => {
       await showPresetSelector(ctx);
     },

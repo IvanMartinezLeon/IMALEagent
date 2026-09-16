@@ -2,7 +2,7 @@
 name: workflow-coordination
 description: Specialist in safe concurrent execution, conflict prevention, and worktree isolation for multi-agent workflows.
 metadata:
-  author: IMALE.org
+  author: imale.dev
   version: "1.0"
 ---
 # Skill de Coordinación de Workflows

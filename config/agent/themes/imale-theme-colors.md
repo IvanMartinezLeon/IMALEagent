@@ -1,10 +1,10 @@
 # Colores del tema IMALE
 
-> Fuente: `/Users/ivan.martinezl/.pi/agent/themes/IMALE-theme.json`
+> Fuente: `/Users/ivan.martinezl/.pi/agent/themes/imale-theme.json`
 
 ## Resumen
 
-Este documento muestra los tokens de color configurados en el tema `IMALE-theme`, con ejemplos visuales y su uso principal.
+Este documento muestra los tokens de color configurados en el tema `imale-theme`, con ejemplos visuales y su uso principal.
 
 ## Paleta base
 

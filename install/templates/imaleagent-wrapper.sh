@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# IMALEagent wrapper - delegates to the real pi binary
 set -euo pipefail
 
 PI_REAL_BIN="__PI_REAL_BIN__"
@@ -12,7 +13,6 @@ resolve_project_root() {
       return 0
     fi
   fi
-
   pwd -P
 }
 

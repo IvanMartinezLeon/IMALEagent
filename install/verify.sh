@@ -33,7 +33,7 @@ echo ""
 check_command "node" "Node.js"
 check_command "npm" "npm"
 check_command "pi" "IMALEagent"
-check_command "IMALEagent" "IMALEagent CLI"
+check_command "imaleagent" "IMALEagent CLI"
 
 echo ""
 echo -e "${BLUE}== Variables de Entorno (Opcional) ==${NC}"
@@ -76,6 +76,30 @@ if command -v pi &>/dev/null; then
 		((CHECKS_FAILED++))
 	fi
 
+	if echo "${PI_LIST}" | grep -q "@catdaemon/pi-code-intelligence"; then
+		echo -e "${GREEN}✓ Code Intelligence${NC}: Instalado y activo"
+		((CHECKS_PASSED++))
+	else
+		echo -e "${RED}✗ Code Intelligence${NC}: No detectado en 'pi list'"
+		((CHECKS_FAILED++))
+	fi
+
+	if echo "${PI_LIST}" | grep -q "pi-web-access"; then
+		echo -e "${GREEN}✓ Web Access${NC}: Instalado y activo"
+		((CHECKS_PASSED++))
+	else
+		echo -e "${RED}✗ Web Access${NC}: No detectado en 'pi list'"
+		((CHECKS_FAILED++))
+	fi
+
+	if echo "${PI_LIST}" | grep -q "pi-ask-user"; then
+		echo -e "${GREEN}✓ Ask User${NC}: Instalado y activo"
+		((CHECKS_PASSED++))
+	else
+		echo -e "${RED}✗ Ask User${NC}: No detectado en 'pi list'"
+		((CHECKS_FAILED++))
+	fi
+
 	if [ -f "${AGENT_CONFIG_DIR}/mcp.json" ] && grep -q '"context-mode"' "${AGENT_CONFIG_DIR}/mcp.json"; then
 		echo -e "${GREEN}✓ context-mode MCP${NC}: Configurado en ${AGENT_CONFIG_DIR}/mcp.json"
 		((CHECKS_PASSED++))
@@ -85,8 +109,8 @@ if command -v pi &>/dev/null; then
 
 	IMALE_EXTENSIONS=(
 		"extensions/ai-router.ts"
-		"extensions/IMALE-header.ts"
-		"extensions/IMALE-preset.ts"
+		"extensions/imale-header.ts"
+		"extensions/imale-preset.ts"
 		"extensions/lib/shared-ui.ts"
 	)
 	MISSING_EXTENSIONS=0
@@ -125,25 +149,6 @@ if command -v pi &>/dev/null; then
 		((CHECKS_FAILED++))
 	fi
 
-	GENERIC_CHAINS=(
-		"generic-discovery.chain.md"
-		"generic-implement-safe.chain.md"
-		"generic-research-and-plan.chain.md"
-	)
-	MISSING_GENERIC_CHAINS=0
-	for chain_file in "${GENERIC_CHAINS[@]}"; do
-		if [ ! -f "${AGENT_CONFIG_DIR}/chains/${chain_file}" ]; then
-			((MISSING_GENERIC_CHAINS++))
-		fi
-	done
-	if [ ${MISSING_GENERIC_CHAINS} -eq 0 ]; then
-		echo -e "${GREEN}✓ Chains genéricas${NC}: Instaladas en ${AGENT_CONFIG_DIR}/chains"
-		((CHECKS_PASSED++))
-	else
-		echo -e "${RED}✗ Chains genéricas${NC}: Faltan ${MISSING_GENERIC_CHAINS} archivo(s) en ${AGENT_CONFIG_DIR}/chains"
-		((CHECKS_FAILED++))
-	fi
-
 	GUIDES_AND_TEMPLATES=(
 		"GENERIC_RULES.md"
 		"MOBILE_GUIDELINES.md"
@@ -164,6 +169,30 @@ if command -v pi &>/dev/null; then
 		((CHECKS_PASSED++))
 	else
 		echo -e "${RED}✗ Guías y plantillas${NC}: Faltan ${MISSING_GUIDES} archivo(s) en ${AGENT_CONFIG_DIR}"
+		((CHECKS_FAILED++))
+	fi
+
+	GENERIC_PROMPTS=(
+		"generic-discovery.md"
+		"generic-fix-bug.md"
+		"generic-implement-safe.md"
+		"generic-research-and-plan.md"
+		"step-scout.md"
+		"step-planner.md"
+		"step-worker.md"
+		"step-reviewer.md"
+	)
+	MISSING_GENERIC_PROMPTS=0
+	for prompt_file in "${GENERIC_PROMPTS[@]}"; do
+		if [ ! -f "${AGENT_CONFIG_DIR}/prompts/${prompt_file}" ]; then
+			((MISSING_GENERIC_PROMPTS++))
+		fi
+	done
+	if [ ${MISSING_GENERIC_PROMPTS} -eq 0 ]; then
+		echo -e "${GREEN}✓ Prompt workflows genéricos${NC}: Instalados en ${AGENT_CONFIG_DIR}/prompts"
+		((CHECKS_PASSED++))
+	else
+		echo -e "${RED}✗ Prompt workflows genéricos${NC}: Faltan ${MISSING_GENERIC_PROMPTS} archivo(s) en ${AGENT_CONFIG_DIR}/prompts"
 		((CHECKS_FAILED++))
 	fi
 else

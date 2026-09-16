@@ -2,7 +2,7 @@
  * Shared TUI helpers for IMALE Pi extensions.
  *
  * Extracts the common SelectList dialog pattern (DynamicBorder + Container +
- * SelectList + nav hint) used across IMALE-header.ts and IMALE-preset.ts
+ * SelectList + nav hint) used across imale-header.ts and imale-preset.ts
  * to eliminate code duplication.
  */
 

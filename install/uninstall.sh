@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# IMALE agent Uninstaller for Linux/macOS
+# IMALEagent Uninstaller for Linux/macOS
 # Uninstall script for IMALEagent
 
 set -e
@@ -30,6 +30,8 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 AGENT_CONFIG_DIR="${HOME}/.pi/agent"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+UNINSTALL_HELPER="${SCRIPT_DIR}/lib/uninstall-config.mjs"
 
 PI_BIN=""
 if command -v pi &>/dev/null; then
@@ -46,7 +48,7 @@ check_pi_package_presence() {
 	local label="$2"
 	if [ -n "${PI_BIN}" ]; then
 		local list_output
-		list_output="$(\"${PI_BIN}\" list 2>/dev/null || true)"
+		list_output="$("${PI_BIN}" list 2>/dev/null || true)"
 		if echo "${list_output}" | grep -q "${pkg}" 2>/dev/null; then
 			echo -e "  ${GREEN}✓${NC} ${label}"
 			return 0
@@ -69,6 +71,7 @@ check_config_presence() {
 
 echo ""
 echo -e "${YELLOW}Checking installed packages...${NC}"
+check_pi_package_presence "@catdaemon/pi-code-intelligence" "Code Intelligence"
 check_pi_package_presence "pi-mcp-adapter" "MCP Adapter"
 check_pi_package_presence "pi-subagents" "Coding Agent"
 
@@ -79,14 +82,35 @@ check_config_presence "agents/generic-planner.md" "generic-planner"
 check_config_presence "agents/generic-worker.md" "generic-worker"
 check_config_presence "agents/generic-reviewer.md" "generic-reviewer"
 check_config_presence "agents/generic-parallel-review.md" "generic-parallel-review"
-check_config_presence "chains/generic-discovery.chain.md" "generic-discovery chain"
-check_config_presence "chains/generic-implement-safe.chain.md" "generic-implement-safe chain"
-check_config_presence "chains/generic-research-and-plan.chain.md" "generic-research-and-plan chain"
+check_config_presence "prompts/generic-discovery.md" "generic-discovery prompt workflow"
+check_config_presence "prompts/generic-implement-safe.md" "generic-implement-safe prompt workflow"
+check_config_presence "prompts/generic-research-and-plan.md" "generic-research-and-plan prompt workflow"
 
 echo ""
 echo -e "${YELLOW}Removing IMALE packages...${NC}"
 
 if [ -n "${PI_BIN}" ]; then
+	echo -e "${YELLOW}  Desinstalando Ask User...${NC}"
+	if "${PI_BIN}" remove npm:pi-ask-user >/dev/null 2>&1; then
+		echo -e "${GREEN}  ✓ Ask User desinstalado${NC}"
+	else
+		echo -e "${YELLOW}  ⚠ Ask User no estaba instalado${NC}"
+	fi
+
+	echo -e "${YELLOW}  Desinstalando Web Access...${NC}"
+	if "${PI_BIN}" remove npm:pi-web-access >/dev/null 2>&1; then
+		echo -e "${GREEN}  ✓ Web Access desinstalado${NC}"
+	else
+		echo -e "${YELLOW}  ⚠ Web Access no estaba instalado${NC}"
+	fi
+
+	echo -e "${YELLOW}  Desinstalando Code Intelligence...${NC}"
+	if "${PI_BIN}" remove npm:@catdaemon/pi-code-intelligence >/dev/null 2>&1; then
+		echo -e "${GREEN}  ✓ Code Intelligence desinstalado${NC}"
+	else
+		echo -e "${YELLOW}  ⚠ Code Intelligence no estaba instalado${NC}"
+	fi
+
 	echo -e "${YELLOW}  Desinstalando MCP Adapter...${NC}"
 	if "${PI_BIN}" remove npm:pi-mcp-adapter >/dev/null 2>&1; then
 		echo -e "${GREEN}  ✓ MCP Adapter desinstalado${NC}"
@@ -108,51 +132,13 @@ echo -e "${YELLOW}Uninstalling IMALEagent...${NC}"
 npm uninstall -g @earendil-works/pi-coding-agent
 
 echo -e "${YELLOW}Removing IMALE configuration from ${AGENT_CONFIG_DIR}...${NC}"
-rm -f "${AGENT_CONFIG_DIR}/APPEND_SYSTEM.md"
-rm -f "${AGENT_CONFIG_DIR}/GENERIC_RULES.md"
-rm -f "${AGENT_CONFIG_DIR}/MOBILE_GUIDELINES.md"
-rm -f "${AGENT_CONFIG_DIR}/logo.txt"
-rm -f "${AGENT_CONFIG_DIR}/settings.json"
-rm -f "${AGENT_CONFIG_DIR}/mcp.json"
-rm -f "${AGENT_CONFIG_DIR}/extensions/IMALE-header.ts"
-rm -f "${AGENT_CONFIG_DIR}/extensions/ai-router.ts"
-rm -f "${AGENT_CONFIG_DIR}/themes/IMALE-theme.json"
-rm -f "${AGENT_CONFIG_DIR}/agents/generic-context-builder.md"
-rm -f "${AGENT_CONFIG_DIR}/agents/generic-planner.md"
-rm -f "${AGENT_CONFIG_DIR}/agents/generic-worker.md"
-rm -f "${AGENT_CONFIG_DIR}/agents/generic-reviewer.md"
-rm -f "${AGENT_CONFIG_DIR}/agents/generic-parallel-review.md"
-rm -f "${AGENT_CONFIG_DIR}/chains/generic-discovery.chain.md"
-rm -f "${AGENT_CONFIG_DIR}/chains/generic-implement-safe.chain.md"
-rm -f "${AGENT_CONFIG_DIR}/chains/generic-research-and-plan.chain.md"
-rm -rf "${AGENT_CONFIG_DIR}/skills/architecture"
-rm -rf "${AGENT_CONFIG_DIR}/skills/documentation"
-rm -rf "${AGENT_CONFIG_DIR}/skills/IMALE-brain"
-rm -rf "${AGENT_CONFIG_DIR}/skills/fix"
-rm -rf "${AGENT_CONFIG_DIR}/skills/learn"
-rm -rf "${AGENT_CONFIG_DIR}/skills/review"
-rm -rf "${AGENT_CONFIG_DIR}/skills/spec-driven-development"
-rm -rf "${AGENT_CONFIG_DIR}/skills/status"
-rm -rf "${AGENT_CONFIG_DIR}/skills/sync"
-rm -rf "${AGENT_CONFIG_DIR}/skills/testing"
-rm -rf "${AGENT_CONFIG_DIR}/skills/ux"
-rm -rf "${AGENT_CONFIG_DIR}/npm/node_modules/pi-mcp-adapter"
-rm -rf "${AGENT_CONFIG_DIR}/npm/node_modules/pi-subagents"
-
-# Eliminar comandos
-rm -f "${AGENT_CONFIG_DIR}/bin/IMALEagent"
-rm -f "${AGENT_CONFIG_DIR}/bin/pi"
-rmdir "${AGENT_CONFIG_DIR}/bin" 2>/dev/null || true
-
-rmdir "${AGENT_CONFIG_DIR}/extensions" 2>/dev/null || true
-rmdir "${AGENT_CONFIG_DIR}/themes" 2>/dev/null || true
-rmdir "${AGENT_CONFIG_DIR}/agents" 2>/dev/null || true
-rmdir "${AGENT_CONFIG_DIR}/chains" 2>/dev/null || true
-rmdir "${AGENT_CONFIG_DIR}/skills" 2>/dev/null || true
-rmdir "${AGENT_CONFIG_DIR}/npm/node_modules" 2>/dev/null || true
-rmdir "${AGENT_CONFIG_DIR}/npm" 2>/dev/null || true
-rmdir "${AGENT_CONFIG_DIR}" 2>/dev/null || true
-rmdir "${HOME}/.pi" 2>/dev/null || true
+# Un único helper Node para los tres desinstaladores: evita listas duplicadas.
+if [ -f "${UNINSTALL_HELPER}" ]; then
+	node "${UNINSTALL_HELPER}" "${AGENT_CONFIG_DIR}"
+else
+	echo -e "  ${RED}✗ No se encontró ${UNINSTALL_HELPER}${NC}"
+	echo -e "  ${YELLOW}Elimina a mano la configuración de ${AGENT_CONFIG_DIR}${NC}"
+fi
 
 echo ""
 echo -e "${YELLOW}Verifying removal...${NC}"
@@ -162,7 +148,7 @@ else
 	echo -e "  ${GREEN}✓${NC} pi eliminado del PATH"
 fi
 if [ -d "${AGENT_CONFIG_DIR}" ]; then
-	echo -e "  ${YELLOW}⚠${NC} ${AGENT_CONFIG_DIR} aún existe (pueden quedar residuos)"
+	echo -e "  ${YELLOW}⚠${NC} ${AGENT_CONFIG_DIR} aún existe (residuos o copias de seguridad)"
 else
 	echo -e "  ${GREEN}✓${NC} Configuración eliminada de ${AGENT_CONFIG_DIR}"
 fi

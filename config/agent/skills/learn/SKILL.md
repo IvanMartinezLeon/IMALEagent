@@ -2,13 +2,13 @@
 name: learn
 description: Specialist in onboarding and project context. Use when explaining how things work, project structure, or IMALE engineering culture.
 metadata:
-  author: IMALE.org
+  author: imale.dev
   version: "1.0"
 ---
 # Skill de Onboarding y Soporte (Learn)
 
 ## Descripción General
-Especialista en facilitar la adopción del ecosistema `pi-IMALE`. Se enfoca en la educación técnica del usuario y el soporte proactivo sobre el entorno de desarrollo.
+Especialista en facilitar la adopción del ecosistema `pi-imale`. Se enfoca en la educación técnica del usuario y el soporte proactivo sobre el entorno de desarrollo.
 
 ## Gotchas (Reglas Críticas)
 - **Asunciones de Conocimiento**: No asumas que el usuario conoce todas las herramientas. Explica siempre el "por qué".

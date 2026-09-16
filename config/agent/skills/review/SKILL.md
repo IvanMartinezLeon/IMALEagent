@@ -2,7 +2,7 @@
 name: review
 description: Expert in code review, quality control, and security. Use when reviewing pull requests, checking coding standards, or finding optimizations.
 metadata:
-  author: IMALE.org
+  author: imale.dev
   version: "2.0"
 ---
 # Skill de Revisión de Código (Review)
@@ -14,7 +14,7 @@ Experto en control de calidad y revisión de código. Se enfoca en asegurar que 
 - **Idioma del Código**: Todo código técnico (variables, funciones, clases) DEBE estar en inglés. No dejes pasar términos en otros idiomas.
 - **Detección de "Code Smells"**: No te limites a la sintaxis. Busca falta de cohesión, métodos gigantes o dependencias circulares.
 - **Seguridad**: Verifica inyección de dependencias, validación de inputs, manejo de secretos y exposición de internals.
-- **Contexto local**: Lista los consumidores del código afectado (`rg "symbol\(" <path> -l`) antes de revisar, y lee los call sites relevantes.
+- **Contexto local**: Usa `code_intelligence_impact` y `code_intelligence_search` para entender el impacto del cambio antes de revisar.
 
 ## Flujo de Trabajo (Workflow)
 - [ ] **Fase 1: Verificación de Estándares (Linting)**

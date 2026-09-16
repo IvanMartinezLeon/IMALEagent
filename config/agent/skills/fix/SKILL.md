@@ -2,7 +2,7 @@
 name: fix
 description: Specialist in diagnosing and resolving technical issues, bugs, and lints. Use when fixing compilation errors, runtime exceptions, or logic bugs.
 metadata:
-  author: IMALE.org
+  author: imale.dev
   version: "2.0"
 ---
 # Skill de Corrección de Errores (Fix)
