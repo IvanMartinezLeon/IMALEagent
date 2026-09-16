@@ -82,6 +82,30 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         $global:checksFail++
     }
 
+    if ($piPackages -match "pi-lens") {
+        Write-Host "✓ pi-lens : Instalado y activo" -ForegroundColor $Green
+        $global:checksPass++
+    } else {
+        Write-Host "✗ pi-lens : No detectado en 'pi list'" -ForegroundColor $Red
+        $global:checksFail++
+    }
+
+    if ($piPackages -match "rpiv-todo") {
+        Write-Host "✓ rpiv-todo : Instalado y activo" -ForegroundColor $Green
+        $global:checksPass++
+    } else {
+        Write-Host "✗ rpiv-todo : No detectado en 'pi list'" -ForegroundColor $Red
+        $global:checksFail++
+    }
+
+    if ($piPackages -match "rpiv-ask-user-question") {
+        Write-Host "✓ rpiv-ask-user-question : Instalado y activo" -ForegroundColor $Green
+        $global:checksPass++
+    } else {
+        Write-Host "✗ rpiv-ask-user-question : No detectado en 'pi list'" -ForegroundColor $Red
+        $global:checksFail++
+    }
+
     if (Get-Command context-mode -ErrorAction SilentlyContinue) {
         Write-Host "✓ Binario context-mode : Disponible en PATH" -ForegroundColor $Green
         $global:checksPass++

@@ -37,6 +37,30 @@ if ($piCommand) {
 }
 
 if ($piExecutable) {
+    Write-Host "  Desinstalando rpiv-ask-user-question..." -ForegroundColor $Yellow
+    & $piExecutable remove npm:@juicesharp/rpiv-ask-user-question >$null 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  ✓ rpiv-ask-user-question desinstalado" -ForegroundColor $Green
+    } else {
+        Write-Host "  ⚠ rpiv-ask-user-question no estaba instalado" -ForegroundColor $Yellow
+    }
+
+    Write-Host "  Desinstalando rpiv-todo..." -ForegroundColor $Yellow
+    & $piExecutable remove npm:@juicesharp/rpiv-todo >$null 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  ✓ rpiv-todo desinstalado" -ForegroundColor $Green
+    } else {
+        Write-Host "  ⚠ rpiv-todo no estaba instalado" -ForegroundColor $Yellow
+    }
+
+    Write-Host "  Desinstalando pi-lens..." -ForegroundColor $Yellow
+    & $piExecutable remove npm:pi-lens >$null 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  ✓ pi-lens desinstalado" -ForegroundColor $Green
+    } else {
+        Write-Host "  ⚠ pi-lens no estaba instalado" -ForegroundColor $Yellow
+    }
+
     Write-Host "  Desinstalando Context Mode..." -ForegroundColor $Yellow
     & $piExecutable remove npm:context-mode >$null 2>$null
     if ($LASTEXITCODE -eq 0) {

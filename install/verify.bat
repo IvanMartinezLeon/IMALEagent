@@ -90,6 +90,33 @@ if %errorlevel% equ 0 (
         set /a checks_fail+=1
     )
 
+    pi list 2>nul | findstr /C:"pi-lens" >nul
+    if !errorlevel! equ 0 (
+        echo [OK] pi-lens: Instalado y activo
+        set /a checks_pass+=1
+    ) else (
+        echo [FAIL] pi-lens: No detectado en "pi list"
+        set /a checks_fail+=1
+    )
+
+    pi list 2>nul | findstr /C:"rpiv-todo" >nul
+    if !errorlevel! equ 0 (
+        echo [OK] rpiv-todo: Instalado y activo
+        set /a checks_pass+=1
+    ) else (
+        echo [FAIL] rpiv-todo: No detectado en "pi list"
+        set /a checks_fail+=1
+    )
+
+    pi list 2>nul | findstr /C:"rpiv-ask-user-question" >nul
+    if !errorlevel! equ 0 (
+        echo [OK] rpiv-ask-user-question: Instalado y activo
+        set /a checks_pass+=1
+    ) else (
+        echo [FAIL] rpiv-ask-user-question: No detectado en "pi list"
+        set /a checks_fail+=1
+    )
+
     where context-mode >nul 2>nul
     if !errorlevel! equ 0 (
         echo [OK] Binario context-mode: Disponible en PATH

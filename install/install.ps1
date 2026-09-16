@@ -215,6 +215,33 @@ if ($LASTEXITCODE -eq 0) {
     exit $LASTEXITCODE
 }
 
+Write-Info "Instalando pi-lens..."
+& $piExecutable install npm:pi-lens >$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Success "Paquete pi-lens instalado"
+} else {
+    Write-Error-Custom "Error al instalar pi-lens"
+    exit $LASTEXITCODE
+}
+
+Write-Info "Instalando rpiv-todo..."
+& $piExecutable install npm:@juicesharp/rpiv-todo >$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Success "Paquete rpiv-todo instalado"
+} else {
+    Write-Error-Custom "Error al instalar rpiv-todo"
+    exit $LASTEXITCODE
+}
+
+Write-Info "Instalando rpiv-ask-user-question..."
+& $piExecutable install npm:@juicesharp/rpiv-ask-user-question >$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Success "Paquete rpiv-ask-user-question instalado"
+} else {
+    Write-Error-Custom "Error al instalar rpiv-ask-user-question"
+    exit $LASTEXITCODE
+}
+
 $wrapperTemplatePath = Join-Path $templateDir "pi.cmd"
 if (-not (Test-Path $wrapperTemplatePath)) {
     Write-Error-Custom "No se encontró la plantilla del wrapper en $wrapperTemplatePath"

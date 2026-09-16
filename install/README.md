@@ -42,6 +42,9 @@ Los scripts de este directorio realizan estas acciones:
    - subagentes
    - adaptador MCP
    - extensión Pi de `context-mode`
+   - `pi-lens` (feedback en tiempo real de código)
+   - `rpiv-todo` (seguimiento de tareas persistente)
+   - `rpiv-ask-user-question` (cuestionarios estructurados)
 4. Instalan el binario global `context-mode` y lo configuran en `mcp.json`.
 5. Dejan disponible la extensión `ai-router`.
 6. Preparan el comando `IMALEagent` (y `pi` como alias) orientado a contexto por proyecto.
@@ -559,6 +562,9 @@ Las verificaciones comprueban, entre otros puntos:
 - [Pi](https://pi.dev/docs/latest)
 - [subagentes](https://pi.dev/packages/pi-subagents)
 - [adaptador MCP](https://pi.dev/packages/pi-mcp-adapter)
+- [pi-lens](https://www.npmjs.com/package/pi-lens)
+- [@juicesharp/rpiv-todo](https://www.npmjs.com/package/@juicesharp/rpiv-todo)
+- [@juicesharp/rpiv-ask-user-question](https://www.npmjs.com/package/@juicesharp/rpiv-ask-user-question)
 
 ---
 

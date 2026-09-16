@@ -202,10 +202,37 @@ else
 	exit 1
 fi
 
+echo -e "${YELLOW}Instalando pi-lens...${NC}"
+if "${PI_BIN}" install npm:pi-lens >/dev/null 2>&1; then
+	echo -e "${GREEN}✓ Paquete pi-lens instalado${NC}"
+else
+	echo -e "${RED}✗ Error al instalar pi-lens${NC}"
+	exit 1
+fi
+
+echo -e "${YELLOW}Instalando rpiv-todo...${NC}"
+if "${PI_BIN}" install npm:@juicesharp/rpiv-todo >/dev/null 2>&1; then
+	echo -e "${GREEN}✓ Paquete rpiv-todo instalado${NC}"
+else
+	echo -e "${RED}✗ Error al instalar rpiv-todo${NC}"
+	exit 1
+fi
+
+echo -e "${YELLOW}Instalando rpiv-ask-user-question...${NC}"
+if "${PI_BIN}" install npm:@juicesharp/rpiv-ask-user-question >/dev/null 2>&1; then
+	echo -e "${GREEN}✓ Paquete rpiv-ask-user-question instalado${NC}"
+else
+	echo -e "${RED}✗ Error al instalar rpiv-ask-user-question${NC}"
+	exit 1
+fi
+
 echo -e "${YELLOW}Verificando paquetes instalados...${NC}"
 check_pi_package "pi-subagents" "Coding Agent" || true
 check_pi_package "pi-mcp-adapter" "MCP Adapter" || true
 check_pi_package "context-mode" "Context Mode" || true
+check_pi_package "pi-lens" "pi-lens" || true
+check_pi_package "@juicesharp/rpiv-todo" "rpiv-todo" || true
+check_pi_package "@juicesharp/rpiv-ask-user-question" "rpiv-ask-user-question" || true
 
 if [ ! -f "${TEMPLATE_DIR}/pi-unix-wrapper.sh" ]; then
 	echo -e "${RED}✗ Error: No se encontró la plantilla del wrapper en ${TEMPLATE_DIR}/pi-unix-wrapper.sh${NC}"

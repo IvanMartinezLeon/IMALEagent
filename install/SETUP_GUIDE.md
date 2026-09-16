@@ -91,6 +91,9 @@ install.bat
    - subagentes
    - adaptador MCP
    - extensión Pi de `context-mode`
+   - `pi-lens`
+   - `rpiv-todo`
+   - `rpiv-ask-user-question`
 5. configura `context-mode` en `mcp.json`
 6. deja disponible la extensión `ai-router`
 6. crea o actualiza el comando `IMALEagent` (y `pi` como alias)

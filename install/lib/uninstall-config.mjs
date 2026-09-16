@@ -55,6 +55,9 @@ const PACKAGE_DIRS = [
   "npm/node_modules/context-mode",
   "npm/node_modules/pi-mcp-adapter",
   "npm/node_modules/pi-subagents",
+  "npm/node_modules/pi-lens",
+  "npm/node_modules/@juicesharp/rpiv-todo",
+  "npm/node_modules/@juicesharp/rpiv-ask-user-question",
 ];
 
 const MERGED_JSON = ["settings.json", "mcp.json"];

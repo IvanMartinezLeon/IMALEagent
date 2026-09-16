@@ -74,6 +74,9 @@ echo -e "${YELLOW}Checking installed packages...${NC}"
 check_pi_package_presence "context-mode" "Context Mode"
 check_pi_package_presence "pi-mcp-adapter" "MCP Adapter"
 check_pi_package_presence "pi-subagents" "Coding Agent"
+check_pi_package_presence "pi-lens" "pi-lens"
+check_pi_package_presence "@juicesharp/rpiv-todo" "rpiv-todo"
+check_pi_package_presence "@juicesharp/rpiv-ask-user-question" "rpiv-ask-user-question"
 
 echo ""
 echo -e "${YELLOW}Checking subagent config...${NC}"
@@ -90,6 +93,27 @@ echo ""
 echo -e "${YELLOW}Removing IMALE packages...${NC}"
 
 if [ -n "${PI_BIN}" ]; then
+	echo -e "${YELLOW}  Desinstalando rpiv-ask-user-question...${NC}"
+	if "${PI_BIN}" remove npm:@juicesharp/rpiv-ask-user-question >/dev/null 2>&1; then
+		echo -e "${GREEN}  ✓ rpiv-ask-user-question desinstalado${NC}"
+	else
+		echo -e "${YELLOW}  ⚠ rpiv-ask-user-question no estaba instalado${NC}"
+	fi
+
+	echo -e "${YELLOW}  Desinstalando rpiv-todo...${NC}"
+	if "${PI_BIN}" remove npm:@juicesharp/rpiv-todo >/dev/null 2>&1; then
+		echo -e "${GREEN}  ✓ rpiv-todo desinstalado${NC}"
+	else
+		echo -e "${YELLOW}  ⚠ rpiv-todo no estaba instalado${NC}"
+	fi
+
+	echo -e "${YELLOW}  Desinstalando pi-lens...${NC}"
+	if "${PI_BIN}" remove npm:pi-lens >/dev/null 2>&1; then
+		echo -e "${GREEN}  ✓ pi-lens desinstalado${NC}"
+	else
+		echo -e "${YELLOW}  ⚠ pi-lens no estaba instalado${NC}"
+	fi
+
 	echo -e "${YELLOW}  Desinstalando Context Mode...${NC}"
 	if "${PI_BIN}" remove npm:context-mode >/dev/null 2>&1; then
 		echo -e "${GREEN}  ✓ Context Mode desinstalado${NC}"

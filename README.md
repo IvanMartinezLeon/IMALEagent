@@ -61,6 +61,9 @@ Los scripts de instalación dejan preparado lo siguiente:
 - delegación y coordinación entre agentes
 - adaptador MCP
 - extensión Pi de `context-mode` (hooks de sesión, tools `ctx_*` y skills `ctx-*`)
+- `pi-lens` para feedback en tiempo real de código (LSP, linters, formatters)
+- `rpiv-todo` para seguimiento de tareas persistente sobre el editor
+- `rpiv-ask-user-question` para cuestionarios estructurados al usuario
 
 ### Configuración de agente
 Se copia `config/agent/*` a `~/.pi/agent`, incluyendo:

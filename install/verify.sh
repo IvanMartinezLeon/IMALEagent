@@ -84,6 +84,30 @@ if command -v pi &>/dev/null; then
 		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
+	if echo "${PI_LIST}" | grep -q "pi-lens"; then
+		echo -e "${GREEN}✓ pi-lens${NC}: Instalado y activo"
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
+	else
+		echo -e "${RED}✗ pi-lens${NC}: No detectado en 'pi list'"
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
+	fi
+
+	if echo "${PI_LIST}" | grep -q "rpiv-todo"; then
+		echo -e "${GREEN}✓ rpiv-todo${NC}: Instalado y activo"
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
+	else
+		echo -e "${RED}✗ rpiv-todo${NC}: No detectado en 'pi list'"
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
+	fi
+
+	if echo "${PI_LIST}" | grep -q "rpiv-ask-user-question"; then
+		echo -e "${GREEN}✓ rpiv-ask-user-question${NC}: Instalado y activo"
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
+	else
+		echo -e "${RED}✗ rpiv-ask-user-question${NC}: No detectado en 'pi list'"
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
+	fi
+
 	if command -v context-mode &>/dev/null; then
 		echo -e "${GREEN}✓ Binario context-mode${NC}: Disponible en PATH"
 		CHECKS_PASSED=$((CHECKS_PASSED + 1))

@@ -36,6 +36,27 @@ if exist "%NPM_GLOBAL_PREFIX%\pi.cmd" set "PI_CMD=%NPM_GLOBAL_PREFIX%\pi.cmd"
 
 :pi_remove_ready
 if defined PI_CMD (
+    echo [INFO] Desinstalando rpiv-ask-user-question...
+    call "%PI_CMD%" remove npm:@juicesharp/rpiv-ask-user-question >nul 2>nul
+    if errorlevel 1 (
+        echo [WARN] rpiv-ask-user-question no estaba instalado
+    ) else (
+        echo [OK] rpiv-ask-user-question desinstalado
+    )
+    echo [INFO] Desinstalando rpiv-todo...
+    call "%PI_CMD%" remove npm:@juicesharp/rpiv-todo >nul 2>nul
+    if errorlevel 1 (
+        echo [WARN] rpiv-todo no estaba instalado
+    ) else (
+        echo [OK] rpiv-todo desinstalado
+    )
+    echo [INFO] Desinstalando pi-lens...
+    call "%PI_CMD%" remove npm:pi-lens >nul 2>nul
+    if errorlevel 1 (
+        echo [WARN] pi-lens no estaba instalado
+    ) else (
+        echo [OK] pi-lens desinstalado
+    )
     echo [INFO] Desinstalando Context Mode...
     call "%PI_CMD%" remove npm:context-mode >nul 2>nul
     if errorlevel 1 (

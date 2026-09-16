@@ -143,6 +143,33 @@ if errorlevel 1 (
 ) else (
     echo [OK] Paquete Context Mode instalado
 )
+echo [INFO] Instalando pi-lens...
+call "%PI_CMD%" install npm:pi-lens >nul 2>nul
+if errorlevel 1 (
+    echo [FAIL] Error al instalar pi-lens
+    pause
+    exit /b 1
+) else (
+    echo [OK] Paquete pi-lens instalado
+)
+echo [INFO] Instalando rpiv-todo...
+call "%PI_CMD%" install npm:@juicesharp/rpiv-todo >nul 2>nul
+if errorlevel 1 (
+    echo [FAIL] Error al instalar rpiv-todo
+    pause
+    exit /b 1
+) else (
+    echo [OK] Paquete rpiv-todo instalado
+)
+echo [INFO] Instalando rpiv-ask-user-question...
+call "%PI_CMD%" install npm:@juicesharp/rpiv-ask-user-question >nul 2>nul
+if errorlevel 1 (
+    echo [FAIL] Error al instalar rpiv-ask-user-question
+    pause
+    exit /b 1
+) else (
+    echo [OK] Paquete rpiv-ask-user-question instalado
+)
 
 if not exist "%TEMPLATE_DIR%\pi.cmd" (
     echo [FAIL] No se encontró la plantilla del wrapper en %TEMPLATE_DIR%\pi.cmd
