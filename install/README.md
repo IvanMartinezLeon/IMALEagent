@@ -60,12 +60,15 @@ Y se copia al entorno del usuario incluyendo, entre otros elementos:
 
 - `settings.json`
 - `mcp.json`
+- `presets.json`
 - `APPEND_SYSTEM.md`
 - `extensions/`
 - `agents/`
 - `prompts/`
 - `skills/`
 - `themes/`
+- `templates/`
+- `examples/`
 
 Esto significa que los scripts de `install/` son la puerta de entrada, pero el comportamiento final del agente depende principalmente de la configuración mantenida en `config/agent/`.
 
@@ -186,8 +189,6 @@ Si aún así necesitas instalar los paquetes base manualmente, ejecuta los coman
 ---
 
 ## Primer arranque
-
-Una vez terminada la instalación:
 
 Una vez terminada la instalación:
 
@@ -363,17 +364,18 @@ Esta configuración instala subagentes y además copia una capa genérica reutil
 - `generic-context-builder` → construye contexto compacto y accionable antes de planificar o editar
 - `generic-planner` → crea un plan mínimo y ejecutable
 - `generic-worker` → implementa cambios pequeños y validados como **single writer**
-- `generic-fixer` → 🆕 arregla bugs rápido sin planificador, con diagnóstico y parche mínimo
+- `generic-fixer` → arregla bugs rápido sin planificador, con diagnóstico y parche mínimo
 - `generic-reviewer` → revisa planes, diffs e implementación con evidencia
 - `generic-parallel-review` → orquesta revisión paralela con varios ángulos y devuelve una síntesis única
-- `generic-doc-writer` → 🆕 escribe y mejora documentación técnica, READMEs y guías
+- `generic-doc-writer` → escribe y mejora documentación técnica, READMEs y guías
 
 ### Prompt workflows genéricos
 
 - `generic-discovery` → `scout` + `generic-context-builder`
 - `generic-implement-safe` → `scout` + `generic-planner` + `generic-worker` + `generic-reviewer`
-- `generic-fix-bug` → 🆕 `scout` + `generic-fixer` + `generic-reviewer` (bugs rápidos, sin planner)
+- `generic-fix-bug` → `scout` + `generic-fixer` + `generic-reviewer` (bugs rápidos, sin planner)
 - `generic-research-and-plan` → `researcher` + `scout` + `generic-planner`
+- `spec-mobile` → arranque rápido de especificación mobile
 
 ### Optimización de costes: modelos por subagente
 
