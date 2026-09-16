@@ -1,0 +1,33 @@
+{
+  "theme": "IMALE-theme",
+  "quietStartup": true,
+  "hideThinkingBlock": true,
+  "defaultThinkingLevel": "low",
+  "compaction": {
+    "enabled": true,
+    "reserveTokens": 8192,
+    "keepRecentTokens": 12000
+  },
+  "subagents": {
+    "agentOverrides": {
+      "context-builder": {
+        "thinking": "low"
+      },
+      "planner": {
+        "thinking": "low",
+        "defaultContext": "fork"
+      },
+      "reviewer": {
+        "thinking": "low"
+      },
+      "worker": {
+        "thinking": "low",
+        "defaultContext": "fork"
+      },
+      "oracle": {
+        "thinking": "low",
+        "defaultContext": "fork"
+      }
+    }
+  }
+}
