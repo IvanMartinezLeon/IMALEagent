@@ -23,8 +23,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${GITHUB_REF_NAME}" \
-            dist/eurecatagent-"${GITHUB_REF_NAME}".tar.gz \
-            dist/eurecatagent.tar.gz \
+            dist/imaleagent-"${GITHUB_REF_NAME}".tar.gz \
+            dist/imaleagent.tar.gz \
             install/install.sh \
             install/install.ps1 \
             install/install.bat \

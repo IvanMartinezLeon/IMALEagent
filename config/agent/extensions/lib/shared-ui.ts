@@ -1,8 +1,8 @@
 /**
- * Shared TUI helpers for EURECAT Pi extensions.
+ * Shared TUI helpers for IMALE Pi extensions.
  *
  * Extracts the common SelectList dialog pattern (DynamicBorder + Container +
- * SelectList + nav hint) used across eurecat-header.ts and eurecat-preset.ts
+ * SelectList + nav hint) used across imale-header.ts and imale-preset.ts
  * to eliminate code duplication.
  */
 
@@ -31,7 +31,7 @@ const DEFAULT_OPTIONS: Pick<Required<SelectListOptions>, "maxVisible" | "navHint
  * Show a themed select-list dialog and return the chosen value.
  *
  * Built with the same `DynamicBorder` + `Container` + `SelectList` pattern
- * used throughout EURECAT extensions.
+ * used throughout IMALE extensions.
  *
  * @returns The selected item's `value`, or `null` if cancelled.
  */

@@ -36,7 +36,7 @@ export default function (pi: ExtensionAPI) {
     }
     sessionCtx = ctx;
     currentMode = "general";
-    pi.events.on("eurecat:agent-mode", (data: { mode: string }) => {
+    pi.events.on("imale:agent-mode", (data: { mode: string }) => {
       currentMode = data.mode;
     });
     const framework = cachedFramework;
@@ -205,7 +205,7 @@ export default function (pi: ExtensionAPI) {
 
       if (result && result !== currentMode) {
         currentMode = result;
-        pi.events.emit("eurecat:agent-mode", { mode: result });
+        pi.events.emit("imale:agent-mode", { mode: result });
         ctx.ui.notify(`Mode switched to: ${result}`, "info");
       }
     },

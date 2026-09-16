@@ -1,6 +1,6 @@
-# Instalación de EURECATagent
+# Instalación de IMALEagent
 
-Guía principal para instalar **EURECATagent** desde este repositorio.
+Guía principal para instalar **IMALEagent** desde este repositorio.
 
 Este directorio contiene los scripts y documentos necesarios para dejar preparado un entorno homogéneo de trabajo con:
 
@@ -45,9 +45,9 @@ Los scripts de este directorio realizan estas acciones:
    - code intelligence
 4. Configuran `context-mode` en `mcp.json`.
 5. Dejan disponible la extensión `ai-router`.
-6. Preparan el comando `eurecatagent` (y `pi` como alias) orientado a contexto por proyecto.
+6. Preparan el comando `imaleagent` (y `pi` como alias) orientado a contexto por proyecto.
 
-El objetivo es disponer de una **base de trabajo coherente para EURECAT** en cualquier proyecto.
+El objetivo es disponer de una **base de trabajo coherente para IMALE** en cualquier proyecto.
 
 ---
 
@@ -91,12 +91,12 @@ npm --version
 
 ## Instalación con un solo comando (curl / iwr)
 
-Instala EURECATagent sin necesidad de clonar el repositorio.
+Instala IMALEagent sin necesidad de clonar el repositorio.
 
 ### macOS / Linux / Windows (Git Bash / WSL)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATagent/release/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | sh
 ```
 
 > También funciona en Windows si usas **Git Bash** o **WSL**.
@@ -106,25 +106,25 @@ curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATage
 ```powershell
 # Ejecutar como Administrador (recomendado) o usuario
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATagent/release/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.ps1 | iex
 ```
 
 ### Windows CMD
 
 ```bat
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATagent/release/install.bat -o install.bat && install.bat
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.bat -o install.bat && install.bat
 ```
 
 ### Instalar una versión específica
 
 ```bash
 # Por variable de entorno (Unix)
-INSTALL_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATagent/release/install.sh | sh
+INSTALL_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | sh
 ```
 
 ```powershell
 # Versión específica en PowerShell
-$env:INSTALL_VERSION='v1.0.0'; iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATagent/release/install.ps1 | iex
+$env:INSTALL_VERSION='v1.0.0'; iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.ps1 | iex
 ```
 
 ---
@@ -159,11 +159,11 @@ install.bat
 
 ## Instalación manual mínima
 
-> ⚠ No recomendada. Prefiere el instalador automático (un solo comando curl/iwr) que copia también toda la configuración EURECAT.
+> ⚠ No recomendada. Prefiere el instalador automático (un solo comando curl/iwr) que copia también toda la configuración IMALE.
 
 Si aún así necesitas instalar los paquetes base manualmente, ejecuta los comandos equivalentes que aparecen en los scripts de `install/`.
 
-> Importante: la instalación manual cubre los paquetes, pero **no sustituye completamente** a los scripts de este repositorio, porque no copia por sí sola toda la configuración EURECAT. Si quieres dejar también `~/.pi/agent` alineado con este proyecto, usa el instalador automático.
+> Importante: la instalación manual cubre los paquetes, pero **no sustituye completamente** a los scripts de este repositorio, porque no copia por sí sola toda la configuración IMALE. Si quieres dejar también `~/.pi/agent` alineado con este proyecto, usa el instalador automático.
 
 ---
 
@@ -517,7 +517,7 @@ verify.bat
 
 Las verificaciones comprueban, entre otros puntos:
 
-- presencia de `node`, `npm` y `eurecatagent` / `pi`
+- presencia de `node`, `npm` y `imaleagent` / `pi`
 - instalación y activación de subagentes
 - instalación y activación del adaptador MCP
 - instalación y activación de code intelligence
@@ -547,7 +547,7 @@ Las verificaciones comprueban, entre otros puntos:
 ## Notas operativas
 
 - Los instaladores usan `npm install -g --ignore-scripts` para reducir la superficie de ejecución innecesaria.
-- La configuración EURECAT añade reglas operativas al agente, incluyendo comunicación en castellano y restricciones de escritura fuera del directorio activo sin permiso explícito.
+- La configuración IMALE añade reglas operativas al agente, incluyendo comunicación en castellano y restricciones de escritura fuera del directorio activo sin permiso explícito.
 - `code intelligence` se usa para descubrimiento estructural, impacto, review y learnings por repositorio.
 - `context-mode` sigue siendo la vía recomendada para logs grandes, outputs pesados y procesamiento de contexto extenso.
 - La extensión `ai-router` no sustituye a las tools nativas: ayuda a decidir **qué mirar primero** y **con qué herramienta conviene empezar**.
@@ -584,8 +584,8 @@ git push origin v1.2.3
 
 # 3. Crear release con gh CLI
 gh release create v1.2.3 \
-  dist/eurecatagent-v1.2.3.tar.gz \
-  dist/eurecatagent.tar.gz \
+  dist/imaleagent-v1.2.3.tar.gz \
+  dist/imaleagent.tar.gz \
   install/install.sh \
   install/install.ps1 \
   install/install.bat \
@@ -598,14 +598,14 @@ gh release create v1.2.3 \
 Sin releases, apuntando directamente a la rama `release`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATagent/release/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | sh
 ```
 
 > ⚠ **RAW no está pensado para producción.** Para instalaciones reproducibles, usa siempre un tag versionado.
 
 ### Opción 3: Dominio propio
 
-Con un dominio propio (`eurecatagent.dev`), sirve el script desde un CDN o haz un redirect a GitHub RAW.
+Con un dominio propio (`imaleagent.dev`), sirve el script desde un CDN o haz un redirect a GitHub RAW.
 
 ---
 
@@ -615,7 +615,7 @@ Si quieres el flujo mínimo recomendado:
 
 1. ejecuta el instalador de tu plataforma
 2. valida con `verify.*`
-3. ejecuta `eurecatagent` dentro de un proyecto
+3. ejecuta `imaleagent` dentro de un proyecto
 4. ejecuta `/router-status`
 5. activa Code Intelligence en el repo
 6. prueba al menos uno de estos flujos: `generic-discovery` o `generic-implement-safe`

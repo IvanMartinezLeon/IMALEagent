@@ -1,12 +1,12 @@
 @echo off
-REM Herramienta de verificación de EURECATagent para Windows CMD
+REM Herramienta de verificación de IMALEagent para Windows CMD
 
 setlocal enabledelayedexpansion
 set checks_pass=0
 set checks_fail=0
 
 echo.
-echo === EURECATagent Verification ===
+echo === IMALEagent Verification ===
 echo.
 
 echo == Verificaciones del Sistema ==
@@ -47,20 +47,20 @@ if defined ANTHROPIC_API_KEY (
     echo [OK] ANTHROPIC_API_KEY: Configurada
     set /a checks_pass+=1
 ) else (
-    echo [WARN] ANTHROPIC_API_KEY: No configurada ^(puedes usar /login en EURECATagent^)
+    echo [WARN] ANTHROPIC_API_KEY: No configurada ^(puedes usar /login en IMALEagent^)
 )
 
 echo.
-echo == Información de EURECATagent ==
+echo == Información de IMALEagent ==
 echo.
 where pi >nul 2>nul
 if %errorlevel% equ 0 (
     set "AGENT_CONFIG_DIR=%USERPROFILE%\.pi\agent"
     if exist "!AGENT_CONFIG_DIR!\settings.json" (
-        echo [OK] Configuración EURECAT: !AGENT_CONFIG_DIR!
+        echo [OK] Configuración IMALE: !AGENT_CONFIG_DIR!
         set /a checks_pass+=1
     ) else (
-        echo [WARN] Configuración EURECAT: No encontrada en !AGENT_CONFIG_DIR!
+        echo [WARN] Configuración IMALE: No encontrada en !AGENT_CONFIG_DIR!
     )
 
     pi list 2>nul | findstr /C:"pi-subagents" >nul
@@ -122,14 +122,14 @@ if %errorlevel% equ 0 (
 
     set /a missing_extensions=0
     if not exist "!AGENT_CONFIG_DIR!\extensions\ai-router.ts" set /a missing_extensions+=1
-    if not exist "!AGENT_CONFIG_DIR!\extensions\eurecat-header.ts" set /a missing_extensions+=1
-    if not exist "!AGENT_CONFIG_DIR!\extensions\eurecat-preset.ts" set /a missing_extensions+=1
+    if not exist "!AGENT_CONFIG_DIR!\extensions\imale-header.ts" set /a missing_extensions+=1
+    if not exist "!AGENT_CONFIG_DIR!\extensions\imale-preset.ts" set /a missing_extensions+=1
     if not exist "!AGENT_CONFIG_DIR!\extensions\lib\shared-ui.ts" set /a missing_extensions+=1
     if !missing_extensions! equ 0 (
-        echo [OK] Extensiones EURECAT: Instaladas en !AGENT_CONFIG_DIR!\extensions
+        echo [OK] Extensiones IMALE: Instaladas en !AGENT_CONFIG_DIR!\extensions
         set /a checks_pass+=1
     ) else (
-        echo [FAIL] Extensiones EURECAT: Faltan !missing_extensions! archivo^(s^)
+        echo [FAIL] Extensiones IMALE: Faltan !missing_extensions! archivo^(s^)
         set /a checks_fail+=1
     )
 
@@ -159,7 +159,7 @@ if %errorlevel% equ 0 (
         set /a checks_fail+=1
     )
 ) else (
-    echo [FAIL] EURECATagent no está instalado
+    echo [FAIL] IMALEagent no está instalado
     echo Ejecuta: install.bat
 )
 

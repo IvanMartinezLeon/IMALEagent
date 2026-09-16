@@ -2,7 +2,7 @@
 name: testing
 description: Expert in software quality and automated testing. Use when creating unit, integration, or E2E tests, and when ensuring code coverage.
 metadata:
-  author: eurecat.org
+  author: imale.dev
   version: "2.0"
 ---
 # Skill de Testing

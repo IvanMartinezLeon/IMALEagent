@@ -17,6 +17,6 @@ resolve_project_root() {
 }
 
 PROJECT_ROOT="$(resolve_project_root)"
-export XDG_DATA_HOME="${PROJECT_ROOT}/.eurecat-data"
+export XDG_DATA_HOME="${PROJECT_ROOT}/.imale-data"
 
 exec "$PI_REAL_BIN" "$@"

@@ -1,14 +1,14 @@
 /**
- * EURECAT Preset Selector
+ * IMALE Preset Selector
  *
- * Interactive TUI preset selector (eurecat:preset) with themed overlay.
+ * Interactive TUI preset selector (imale:preset) with themed overlay.
  * Cambia el comportamiento del agente entre modos: documentación, revisión,
  * implementación, debug, arquitectura, exploración y general.
  *
  * Integración:
  * - Inyecta instrucciones en el system prompt via before_agent_start
  * - Cambia herramientas activas y nivel de thinking por preset
- * - Emite evento eurecat:agent-mode para sincronizar el footer del header
+ * - Emite evento imale:agent-mode para sincronizar el footer del header
  * - Persiste el preset activo entre sesiones via pi.appendEntry
  * - Lee presets de ~/.pi/agent/presets.json con fallback built-in
  */
@@ -136,7 +136,7 @@ function loadPresets(cwd: string): PresetManifest {
 
 // ── Export ────────────────────────────────────────────────────────────────
 
-export default function eurecatPresetExtension(pi: ExtensionAPI) {
+export default function imalePresetExtension(pi: ExtensionAPI) {
   let presets: PresetManifest = {};
   let activeKey: string | undefined;
   let activePreset: Preset | undefined;
@@ -149,7 +149,7 @@ export default function eurecatPresetExtension(pi: ExtensionAPI) {
     const entries = ctx.sessionManager.getEntries();
     for (let i = entries.length - 1; i >= 0; i--) {
       const e = entries[i];
-      if (e.type === "custom" && (e as any).customType === "eurecat-preset-state") {
+      if (e.type === "custom" && (e as any).customType === "imale-preset-state") {
         const data = (e as any).data as { name?: string } | undefined;
         if (data?.name && presets[data.name]) {
           activeKey = data.name;
@@ -166,7 +166,7 @@ export default function eurecatPresetExtension(pi: ExtensionAPI) {
   // ── Persist preset state each turn ──────────────────────────────
   pi.on("turn_start", async () => {
     if (activeKey) {
-      pi.appendEntry("eurecat-preset-state", { name: activeKey });
+      pi.appendEntry("imale-preset-state", { name: activeKey });
     }
   });
 
@@ -199,8 +199,8 @@ export default function eurecatPresetExtension(pi: ExtensionAPI) {
       }
     }
 
-    // Emit event for header integration (eurecat-header.ts listens to this)
-    pi.events.emit("eurecat:agent-mode", { mode: key });
+    // Emit event for header integration (imale-header.ts listens to this)
+    pi.events.emit("imale:agent-mode", { mode: key });
 
     updateStatus(ctx);
   }
@@ -218,7 +218,7 @@ export default function eurecatPresetExtension(pi: ExtensionAPI) {
     pi.setActiveTools(allTools);
 
     // Emit reset event
-    pi.events.emit("eurecat:agent-mode", { mode: "general" });
+    pi.events.emit("imale:agent-mode", { mode: "general" });
 
     updateStatus(ctx);
   }
@@ -227,9 +227,9 @@ export default function eurecatPresetExtension(pi: ExtensionAPI) {
   function updateStatus(ctx: ExtensionContext) {
     if (activeKey && activePreset) {
       // Raw text sin ANSI: el footer custom lo formatea como botón
-      ctx.ui.setStatus("eurecat-preset", `${activePreset.emoji} ${activePreset.footerLabel}`);
+      ctx.ui.setStatus("imale-preset", `${activePreset.emoji} ${activePreset.footerLabel}`);
     } else {
-      ctx.ui.setStatus("eurecat-preset", undefined);
+      ctx.ui.setStatus("imale-preset", undefined);
     }
   }
 
@@ -284,9 +284,9 @@ export default function eurecatPresetExtension(pi: ExtensionAPI) {
     }
   }
 
-  // ── eurecat:preset command (con soporte para args directos) ────
-  pi.registerCommand("eurecat:preset", {
-    description: "Selector interactivo de presets del agente. Uso: /eurecat:preset [nombre]",
+  // ── imale:preset command (con soporte para args directos) ────
+  pi.registerCommand("imale:preset", {
+    description: "Selector interactivo de presets del agente. Uso: /imale:preset [nombre]",
     handler: async (args, ctx) => {
       if (args?.trim()) {
         const name = args.trim();
@@ -304,9 +304,9 @@ export default function eurecatPresetExtension(pi: ExtensionAPI) {
     },
   });
 
-  // ── Alias: /preset-eurecat for convenience ──────────────────────
-  pi.registerCommand("preset-eurecat", {
-    description: "Selector interactivo de presets del agente (alias de eurecat:preset)",
+  // ── Alias: /preset-imale for convenience ──────────────────────
+  pi.registerCommand("preset-imale", {
+    description: "Selector interactivo de presets del agente (alias de imale:preset)",
     handler: async (_args, ctx) => {
       await showPresetSelector(ctx);
     },

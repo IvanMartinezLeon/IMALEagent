@@ -107,7 +107,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     routerState.lastPromptMode = "general";
-    pi.events.emit("eurecat:agent-mode", { mode: routerState.lastPromptMode });
+    pi.events.emit("imale:agent-mode", { mode: routerState.lastPromptMode });
     routerState.lastPrompt = undefined;
     await refreshCapabilities(ctx.cwd);
     setStatus(ctx);
@@ -122,7 +122,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     const promptText = typeof event.prompt === "string" ? event.prompt : "";
     routerState.lastPrompt = promptText;
     routerState.lastPromptMode = classifyPrompt(promptText);
-    pi.events.emit("eurecat:agent-mode", { mode: routerState.lastPromptMode });
+    pi.events.emit("imale:agent-mode", { mode: routerState.lastPromptMode });
     setStatus(ctx);
 
     const parts: string[] = [];
@@ -148,7 +148,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
       }
     } else {
       parts.push(
-        "- code-intelligence is not installed. Use focused built-in tools and reinstall EURECATagent if you want local code graph and impact analysis.",
+        "- code-intelligence is not installed. Use focused built-in tools and reinstall IMALEagent if you want local code graph and impact analysis.",
       );
     }
 

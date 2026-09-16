@@ -1,6 +1,6 @@
-# EURECAT Engineering Best Practices
+# IMALE Engineering Best Practices
 
-> **General engineering standards for all EURECAT projects**  
+> **General engineering standards for all IMALE projects**  
 > Use alongside project-specific guides
 
 ---
@@ -441,13 +441,13 @@ Document in `CHANGELOG.md`:
 ## FAQ
 
 **Q: Do I need to follow all these standards?**  
-A: Yes, for EURECAT projects. Project-specific guides may add or restrict.
+A: Yes, for IMALE projects. Project-specific guides may add or restrict.
 
 **Q: What if my project has different conventions?**  
 A: Document them clearly and reference these standards as baseline.
 
 **Q: How do I propose changes to these standards?**  
-A: Create an issue or PR in the main EURECAT repository.
+A: Create an issue or PR in the main IMALE repository.
 
 **Q: Who enforces these?**  
 A: Code review, linting, testing, and team culture.
@@ -470,5 +470,5 @@ A: Code review, linting, testing, and team culture.
 
 **Version:** 1.0  
 **Last Updated:** June 2026  
-**Status:** EURECAT-wide Best Practice (Mandatory)  
-**Maintained By:** EURECAT Engineering Leadership
+**Status:** IMALE-wide Best Practice (Mandatory)  
+**Maintained By:** IMALE Engineering Leadership

@@ -1,6 +1,6 @@
-# EURECATagent
+# IMALEagent
 
-Repositorio de **instalación, configuración y onboarding técnico** para un entorno de trabajo basado en **Pi** dentro de EURECAT.
+Repositorio de **instalación, configuración y onboarding técnico** para un entorno de trabajo basado en **Pi** dentro de IMALE.
 
 Su función principal es dejar preparado un agente de desarrollo con una configuración homogénea, orientada a:
 
@@ -9,7 +9,7 @@ Su función principal es dejar preparado un agente de desarrollo con una configu
 - automatización y delegación con **subagentes**
 - extensibilidad mediante **extensions**, **skills** y **themes** propios
 
-> Este repo no contiene una aplicación de negocio. Contiene la base para instalar y operar EURECATagent.
+> Este repo no contiene una aplicación de negocio. Contiene la base para instalar y operar IMALEagent.
 
 ---
 
@@ -34,7 +34,7 @@ Su función principal es dejar preparado un agente de desarrollo con una configu
 
 ## Objetivo
 
-Estandarizar cómo se instala y usa EURECATagent en cualquier proyecto.
+Estandarizar cómo se instala y usa IMALEagent en cualquier proyecto.
 
 Este repositorio evita que cada desarrollador tenga que configurar manualmente:
 
@@ -77,21 +77,21 @@ Se copia `config/agent/*` a `~/.pi/agent`, incluyendo:
 ### Integraciones operativas
 - `context-mode` como MCP lazy-loaded
 - extensión `ai-router` para routing híbrido
-- launcher `pi` (comando `eurecatagent`) orientado a contexto por proyecto
+- launcher `pi` (comando `imaleagent`) orientado a contexto por proyecto
 
 ---
 
 ## Arquitectura del repositorio
 
-El repositorio está organizado en tres capas:
+El repositorio está organizado en dos capas:
 
 ### 1. Capa de instalación: `install/`
 Contiene scripts multiplataforma y documentación operativa.
 
 Responsabilidades:
-- instalar EURECATagent y paquetes asociados
+- instalar IMALEagent y paquetes asociados
 - copiar configuración al home del usuario
-- dejar disponible el comando `eurecatagent` (y `pi` como alias)
+- dejar disponible el comando `imaleagent` (y `pi` como alias)
 - validar instalación y entorno
 - documentar troubleshooting y flujo recomendado
 
@@ -104,15 +104,7 @@ Responsabilidades:
 - inyectar instrucciones de sistema adicionales
 - registrar extensiones y habilidades reutilizables
 - registrar subagentes y chains genéricas reutilizables
-- aplicar identidad visual EURECAT
-
-### 3. Capa de demostración: `poc/`
-Contiene ejemplos controlados para enseñar cómo usar capacidades avanzadas del entorno.
-
-Responsabilidades:
-- mostrar relaciones entre archivos para Code Intelligence
-- ofrecer prompts y casos de prueba reproducibles
-- servir de material de onboarding
+- aplicar identidad visual IMALE
 
 ---
 
@@ -123,15 +115,27 @@ Responsabilidades:
 ├── config/
 │   └── agent/
 │       ├── APPEND_SYSTEM.md          # reglas de sistema añadidas al agente
+│       ├── BEST_PRACTICES.md         # estándares de ingeniería
+│       ├── EXPLORATION_STRATEGY.md   # estrategia de exploración de codebases
+│       ├── GUIDANCE_INDEX.md         # índice de recursos disponibles
 │       ├── settings.json             # ajustes base del agente
 │       ├── mcp.json                  # definición MCP, incluyendo context-mode
+│       ├── presets.json              # presets del agente (comando imale:preset)
+│       ├── logo.txt                  # cabecera ASCII
 │       ├── extensions/
 │       │   ├── ai-router.ts          # routing híbrido según tipo de prompt
-│       │   └── eurecat-header.ts     # personalización visual/comportamiento UI
+│       │   ├── imale-header.ts       # personalización visual/comportamiento UI
+│       │   ├── imale-preset.ts       # selector interactivo de presets
+│       │   └── lib/shared-ui.ts      # helpers TUI compartidos
 │       ├── agents/                   # subagentes genéricos reutilizables
 │       ├── chains/                   # workflows genéricos reutilizables
-│       ├── skills/                   # skills especializadas EURECAT
-│       └── themes/                   # tema visual del agente
+│       ├── skills/                   # skills especializadas IMALE
+│       ├── prompts/                  # prompts de bienvenida
+│       ├── templates/                # plantillas de exploración de proyecto
+│       ├── examples/                 # ejemplos de exploración por tecnología
+│       └── themes/
+│           ├── imale-theme.json      # tema visual del agente
+│           └── imale-theme-colors.md # referencia de tokens de color
 ├── install.sh                        # entry point cross-platform (curl|sh)
 ├── install/
 │   ├── install.sh                    # instalador Linux/macOS
@@ -139,12 +143,10 @@ Responsabilidades:
 │   ├── install.bat                   # instalador Windows CMD
 │   ├── verify.*                      # validación post-instalación
 │   ├── uninstall.*                   # desinstalación
-│   ├── templates/                    # wrappers y plantillas auxiliares
+│   ├── templates/                    # wrappers: comando `imaleagent` y alias `pi`
 │   └── *.md                          # guías operativas
-├── scripts/
-│   └── build-release.sh              # genera release tarball para curl|sh
-└── poc/
-    └── code-intelligence-demo/       # ejemplo guiado para Code Intelligence
+└── scripts/
+    └── build-release.sh              # genera release tarball para curl|sh
 ```
 
 ---
@@ -156,17 +158,18 @@ Después de la limpieza documental, la estructura recomendada del repositorio qu
 ```text
 .
 ├── README.md                        # visión general, onboarding y arquitectura
+├── install.sh                       # entry point cross-platform (curl|sh)
 ├── config/
-│   └── agent/                      # configuración fuente que se copia a ~/.pi/agent
+│   └── agent/                       # configuración fuente que se copia a ~/.pi/agent
 ├── install/
-│   ├── README.md                   # guía principal de instalación y routing
-│   ├── SETUP_GUIDE.md              # validación, troubleshooting y diagnóstico
-│   ├── install.*                   # instaladores por plataforma
-│   ├── verify.*                    # scripts de verificación
-│   ├── uninstall.*                 # scripts de desinstalación
-│   └── templates/                  # wrappers auxiliares usados por los instaladores
-└── poc/
-    └── code-intelligence-demo/     # demo guiada de Code Intelligence
+│   ├── README.md                    # guía principal de instalación y routing
+│   ├── SETUP_GUIDE.md               # validación, troubleshooting y diagnóstico
+│   ├── install.*                    # instaladores por plataforma
+│   ├── verify.*                     # scripts de verificación
+│   ├── uninstall.*                  # scripts de desinstalación
+│   └── templates/                   # wrappers auxiliares usados por los instaladores
+└── scripts/
+    └── build-release.sh             # genera el release tarball de curl|sh
 ```
 
 ### Criterio de mantenimiento
@@ -201,20 +204,20 @@ Requisitos mínimos:
 **macOS / Linux / Windows (Git Bash / WSL):**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATagent/release/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | sh
 ```
 
 **Windows PowerShell:**
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATagent/release/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.ps1 | iex
 ```
 
 **Windows CMD:**
 
 ```bat
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-Eurecat/EURECATagent/release/install.bat -o install.bat && install.bat
+curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.bat -o install.bat && install.bat
 ```
 
 #### Opción desde el repositorio clonado
@@ -264,7 +267,7 @@ cd install
 verify.bat
 ```
 
-### 4. Abre EURECATagent en un proyecto
+### 4. Abre IMALEagent en un proyecto
 
 ```bash
 cd /ruta/a/tu/proyecto
@@ -410,23 +413,24 @@ Permite delegar o paralelizar trabajo con subagentes.
 
 En esta configuración se complementa con agentes y chains genéricas instaladas desde `config/agent/agents/` y `config/agent/chains/`.
 
-Set incluido actualmente:
-- agentes: `generic-context-builder`, `generic-planner`, `generic-worker`, `generic-reviewer`, `generic-parallel-review`
-- chains: `generic-discovery`, `generic-implement-safe`, `generic-research-and-plan`
+Set incluido actualmente (`config/agent/agents/` y `config/agent/chains/`):
+- agentes: `generic-context-builder`, `generic-doc-writer`, `generic-fixer`, `generic-parallel-review`, `generic-planner`, `generic-reviewer`, `generic-worker`
+- chains: `generic-discovery`, `generic-fix-bug`, `generic-implement-safe`, `generic-research-and-plan`
 
-### Skills EURECAT
-El repo incorpora skills para tareas específicas:
+### Skills IMALE
+El repo incorpora skills para tareas específicas (`config/agent/skills/`):
+- `api-design`
 - `architecture`
 - `documentation`
-- `eurecat-brain`
 - `fix`
+- `git`
 - `learn`
 - `review`
+- `security`
 - `spec-driven-development`
-- `status`
 - `sync`
 - `testing`
-- `ux`
+- `workflow-coordination`
 
 ---
 
@@ -471,23 +475,6 @@ Qué valida cada una:
 
 ---
 
-## Prueba de concepto incluida
-
-El repositorio incluye una demo técnica en:
-
-- `poc/code-intelligence-demo/`
-
-Su objetivo es enseñar, con un mini dominio de checkout, cómo usar:
-
-- `code_intelligence_search`
-- `code_intelligence_impact`
-- `code_intelligence_analyze_changes`
-
-Punto de entrada recomendado:
-- `poc/code-intelligence-demo/README.md`
-
----
-
 ## Documentación interna
 
 Dentro de `install/` se mantiene solo la documentación operativa necesaria:
@@ -518,11 +505,10 @@ Si acabas de llegar al proyecto, el recorrido mínimo recomendado es:
 1. lee este `README.md`
 2. ejecuta el instalador de tu plataforma en `install/`
 3. ejecuta el verificador correspondiente
-4. abre EURECATagent dentro de un proyecto real
+4. abre IMALEagent dentro de un proyecto real
 5. lanza `/router-status` y activa Code Intelligence
 6. revisa `install/README.md` para ver el uso de subagentes y chains genéricas
 7. prueba al menos uno de estos flujos: `generic-discovery` o `generic-implement-safe`
-8. usa `poc/code-intelligence-demo/` para entender el flujo de análisis
 
 Con eso deberías entender:
 - qué instala este repo

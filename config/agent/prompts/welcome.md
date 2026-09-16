@@ -1,12 +1,12 @@
 <!--
-/welcome — Muestra los comandos y flujos disponibles en EURECATagent
+/welcome — Muestra los comandos y flujos disponibles en IMALEagent
 -->
-# EURECATagent — Comandos rápidos
+# IMALEagent — Comandos rápidos
 
-Para arrancar EURECATagent desde la terminal:
+Para arrancar IMALEagent desde la terminal:
 
 ```bash
-eurecatagent
+imaleagent
 # o también: pi
 ```
 

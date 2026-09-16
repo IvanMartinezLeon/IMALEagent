@@ -1,4 +1,4 @@
-# EURECAT agent Uninstaller for Windows (PowerShell)
+# IMALEagent Uninstaller for Windows (PowerShell)
 
 $Blue = [System.ConsoleColor]::Blue
 $Green = [System.ConsoleColor]::Green
@@ -6,12 +6,12 @@ $Red = [System.ConsoleColor]::Red
 $Yellow = [System.ConsoleColor]::Yellow
 
 Write-Host ""
-Write-Host "=== EURECATagent Uninstaller (Windows PowerShell) ===" -ForegroundColor $Blue
+Write-Host "=== IMALEagent Uninstaller (Windows PowerShell) ===" -ForegroundColor $Blue
 Write-Host ""
 
 $agentConfigDir = Join-Path $HOME ".pi\agent"
 
-Write-Host "This will uninstall EURECATagent and remove its configuration from $agentConfigDir." -ForegroundColor $Yellow
+Write-Host "This will uninstall IMALEagent and remove its configuration from $agentConfigDir." -ForegroundColor $Yellow
 Write-Host ""
 
 $confirmation = Read-Host "Are you sure? (y/n)"
@@ -21,7 +21,7 @@ if ($confirmation -ne "y" -and $confirmation -ne "Y") {
 }
 
 Write-Host ""
-Write-Host "Removing EURECAT packages..." -ForegroundColor $Yellow
+Write-Host "Removing IMALE packages..." -ForegroundColor $Yellow
 Write-Host ""
 
 $piExecutable = $null
@@ -78,27 +78,27 @@ if ($piExecutable) {
     }
 }
 
-Write-Host "Uninstalling EURECATagent..." -ForegroundColor $Yellow
+Write-Host "Uninstalling IMALEagent..." -ForegroundColor $Yellow
 Write-Host ""
 
 # Uninstall the underlying agent using npm
 npm uninstall -g @earendil-works/pi-coding-agent
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "EURECATagent uninstallation failed." -ForegroundColor $Red
+    Write-Host "IMALEagent uninstallation failed." -ForegroundColor $Red
     Read-Host "Press Enter to close"
     exit $LASTEXITCODE
 }
 
-Write-Host "Removing EURECAT configuration from $agentConfigDir..." -ForegroundColor $Yellow
+Write-Host "Removing IMALE configuration from $agentConfigDir..." -ForegroundColor $Yellow
 
 $pathsToRemove = @(
     (Join-Path $agentConfigDir "APPEND_SYSTEM.md"),
     (Join-Path $agentConfigDir "logo.txt"),
     (Join-Path $agentConfigDir "settings.json"),
     (Join-Path $agentConfigDir "mcp.json"),
-    (Join-Path $agentConfigDir "extensions\eurecat-header.ts"),
+    (Join-Path $agentConfigDir "extensions\imale-header.ts"),
     (Join-Path $agentConfigDir "extensions\ai-router.ts"),
-    (Join-Path $agentConfigDir "themes\eurecat-theme.json"),
+    (Join-Path $agentConfigDir "themes\imale-theme.json"),
     (Join-Path $agentConfigDir "agents\generic-context-builder.md"),
     (Join-Path $agentConfigDir "agents\generic-planner.md"),
     (Join-Path $agentConfigDir "agents\generic-worker.md"),
@@ -109,7 +109,7 @@ $pathsToRemove = @(
     (Join-Path $agentConfigDir "chains\generic-research-and-plan.chain.md"),
     (Join-Path $agentConfigDir "skills\architecture"),
     (Join-Path $agentConfigDir "skills\documentation"),
-    (Join-Path $agentConfigDir "skills\eurecat-brain"),
+    (Join-Path $agentConfigDir "skills\imale-brain"),
     (Join-Path $agentConfigDir "skills\fix"),
     (Join-Path $agentConfigDir "skills\learn"),
     (Join-Path $agentConfigDir "skills\review"),
@@ -121,8 +121,8 @@ $pathsToRemove = @(
     (Join-Path $agentConfigDir "npm\node_modules\@catdaemon\pi-code-intelligence"),
     (Join-Path $agentConfigDir "npm\node_modules\pi-mcp-adapter"),
     (Join-Path $agentConfigDir "npm\node_modules\pi-subagents"),
-    (Join-Path $agentConfigDir "bin\eurecatagent"),
-    (Join-Path $agentConfigDir "bin\eurecatagent.cmd"),
+    (Join-Path $agentConfigDir "bin\imaleagent"),
+    (Join-Path $agentConfigDir "bin\imaleagent.cmd"),
     (Join-Path $agentConfigDir "bin\pi"),
     (Join-Path $agentConfigDir "bin\pi.cmd")
 )
@@ -153,7 +153,7 @@ foreach ($dir in $dirsToCleanup) {
 }
 
 Write-Host ""
-Write-Host "[OK] EURECATagent uninstalled" -ForegroundColor $Green
+Write-Host "[OK] IMALEagent uninstalled" -ForegroundColor $Green
 Write-Host "[OK] Configuration removed from $agentConfigDir" -ForegroundColor $Green
 Write-Host ""
 Write-Host "Other package managers: pnpm remove -g ... / yarn global remove ... / bun uninstall -g ..." -ForegroundColor $Yellow

@@ -2,7 +2,7 @@
 name: spec-driven-development
 description: Expert in designing and validating specifications before coding. Use when starting a new feature or complex change to define goals, structure, and tests.
 metadata:
-  author: eurecat.org
+  author: imale.dev
   version: "1.0"
 ---
 # Skill de Spec-Driven Development (SDD)

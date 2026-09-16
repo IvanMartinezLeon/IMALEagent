@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Instalador de EURECATagent para Linux/macOS
+# Instalador de IMALEagent para Linux/macOS
 
 set -e
 
@@ -10,7 +10,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}=== EURECATagent Installer (Linux/macOS) ===${NC}"
+echo -e "${BLUE}=== IMALEagent Installer (Linux/macOS) ===${NC}"
 echo ""
 
 if ! command -v node &>/dev/null; then
@@ -38,7 +38,7 @@ WRAPPER_PATH="${AGENT_BIN_DIR}/pi"
 
 append_path_block() {
 	local rc_file="$1"
-	local marker_start="# >>> EURECAT agent PATH >>>"
+	local marker_start="# >>> IMALEagent PATH >>>"
 
 	mkdir -p "$(dirname "${rc_file}")"
 	touch "${rc_file}"
@@ -48,9 +48,9 @@ append_path_block() {
 	fi
 
 	cat >>"${rc_file}" <<'EOF'
-# >>> EURECAT agent PATH >>>
+# >>> IMALEagent PATH >>>
 export PATH="$HOME/.pi/agent/bin:$PATH"
-# <<< EURECAT agent PATH <<<
+# <<< IMALEagent PATH <<<
 EOF
 }
 
@@ -112,13 +112,13 @@ verify_subagent_config() {
 	fi
 }
 
-echo -e "${YELLOW}Instalando EURECATagent...${NC}"
+echo -e "${YELLOW}Instalando IMALEagent...${NC}"
 if ! npm install -g --loglevel=error --ignore-scripts @earendil-works/pi-coding-agent >/dev/null 2>&1; then
 	echo -e "${RED}✗ Error: No se pudo instalar @earendil-works/pi-coding-agent${NC}"
 	exit 1
 fi
 
-echo -e "${YELLOW}Copiando la configuración de EURECATagent...${NC}"
+echo -e "${YELLOW}Copiando la configuración de IMALEagent...${NC}"
 if [ ! -d "${CONFIG_SOURCE_DIR}" ]; then
 	echo -e "${RED}✗ Error: No se encontró la carpeta de configuración en ${CONFIG_SOURCE_DIR}${NC}"
 	exit 1
@@ -127,7 +127,7 @@ fi
 mkdir -p "${AGENT_CONFIG_DIR}"
 cp -R "${CONFIG_SOURCE_DIR}/." "${AGENT_CONFIG_DIR}/"
 echo -e "${GREEN}✓ Configuración copiada ${NC}"
-echo -e "${GREEN}✓ Extensiones del agente instaladas${NC} (ai-router, eurecat-header, eurecat-preset)"
+echo -e "${GREEN}✓ Extensiones del agente instaladas${NC} (ai-router, imale-header, imale-preset)"
 verify_subagent_config
 
 echo -e "${YELLOW}Instalando y activando paquetes...${NC}"
@@ -183,34 +183,39 @@ if [ ! -f "${TEMPLATE_DIR}/pi-unix-wrapper.sh" ]; then
 	exit 1
 fi
 
+if [ ! -f "${TEMPLATE_DIR}/imaleagent-wrapper.sh" ]; then
+	echo -e "${RED}✗ Error: No se encontró la plantilla del wrapper en ${TEMPLATE_DIR}/imaleagent-wrapper.sh${NC}"
+	exit 1
+fi
+
 mkdir -p "${AGENT_BIN_DIR}"
 PI_BIN_ESCAPED="$(printf '%s' "${PI_BIN}" | sed 's/[&|]/\\&/g')"
 sed "s|__PI_REAL_BIN__|${PI_BIN_ESCAPED}|g" "${TEMPLATE_DIR}/pi-unix-wrapper.sh" >"${WRAPPER_PATH}"
 chmod +x "${WRAPPER_PATH}"
 
-# Crear comando eurecatagent
-EURE_WRAPPER_PATH="${AGENT_BIN_DIR}/eurecatagent"
-sed "s|__PI_REAL_BIN__|${PI_BIN_ESCAPED}|g" "${TEMPLATE_DIR}/eurecatagent-wrapper.sh" >"${EURE_WRAPPER_PATH}"
-chmod +x "${EURE_WRAPPER_PATH}"
+# Crear comando imaleagent
+IMALE_WRAPPER_PATH="${AGENT_BIN_DIR}/imaleagent"
+sed "s|__PI_REAL_BIN__|${PI_BIN_ESCAPED}|g" "${TEMPLATE_DIR}/imaleagent-wrapper.sh" >"${IMALE_WRAPPER_PATH}"
+chmod +x "${IMALE_WRAPPER_PATH}"
 
 append_path_block "${HOME}/.profile"
 append_path_block "${HOME}/.bashrc"
 append_path_block "${HOME}/.zshrc"
 export PATH="${AGENT_BIN_DIR}:$PATH"
 
-echo -e "${GREEN}[OK] EURECATagent installed at ${WRAPPER_PATH}${NC}"
+echo -e "${GREEN}[OK] IMALEagent installed at ${WRAPPER_PATH}${NC}"
 
 echo ""
 
 if command -v pi &>/dev/null; then
-	echo -e "${GREEN}[OK] EURECATagent is available in your PATH${NC}"
+	echo -e "${GREEN}[OK] IMALEagent is available in your PATH${NC}"
 else
 	echo -e "${YELLOW}[WARN] Restart your terminal or run: source ~/.bashrc${NC}"
 fi
 
 echo ""
 echo -e "${BLUE}Next steps:${NC}"
-echo "  1. cd /your/project  &&  eurecatagent"
+echo "  1. cd /your/project  &&  imaleagent"
 echo "  2. /login  or  export ANTHROPIC_API_KEY=your-key"
 echo "  3. /code-intelligence-doctor  &&  /enable-code-intelligence"
 echo "  4. Docs: https://pi.dev/docs/latest"

@@ -1,6 +1,6 @@
 # Guía detallada de instalación y troubleshooting
 
-Documento técnico para instalar, validar y diagnosticar el stack de **EURECATagent**.
+Documento técnico para instalar, validar y diagnosticar el stack de **IMALEagent**.
 
 Este archivo complementa `install/README.md`:
 
@@ -28,7 +28,7 @@ Usa este documento si necesitas alguna de estas tareas:
 
 - instalar el stack en una máquina nueva
 - entender qué valida realmente `verify.*`
-- diagnosticar por qué `eurecatagent` no aparece en PATH
+- diagnosticar por qué `imaleagent` no aparece en PATH
 - revisar por qué falta `code intelligence` o `context-mode`
 - confirmar si el router híbrido está funcionando correctamente
 
@@ -92,7 +92,7 @@ install.bat
    - code intelligence
 4. configura `context-mode`
 5. deja disponible la extensión `ai-router`
-6. crea o actualiza el comando `eurecatagent` (y `pi` como alias)
+6. crea o actualiza el comando `imaleagent` (y `pi` como alias)
 
 ---
 
@@ -111,7 +111,7 @@ En particular, no asegura:
 - copia completa de `config/agent/`
 - `mcp.json` con `context-mode`
 - extensiones locales como `ai-router`
-- skills y tema EURECAT
+- skills y tema IMALE
 
 Si buscas una instalación fiel a este repo, usa el instalador automático.
 
@@ -251,7 +251,7 @@ npm --version
 
 Causa probable:
 - la terminal no ha recargado PATH
-- el comando `eurecatagent` no está en el PATH actual
+- el comando `imaleagent` no está en el PATH actual
 
 Acción en Linux/macOS:
 
@@ -315,7 +315,7 @@ Acción:
 3. activa el repo con `/enable-code-intelligence`
 4. revisa la sección de routing en `install/README.md`
 
-### Los scripts funcionan, pero la experiencia no coincide con EURECAT
+### Los scripts funcionan, pero la experiencia no coincide con IMALE
 
 Causa probable:
 - hubo instalación manual parcial
@@ -323,7 +323,7 @@ Causa probable:
 
 Acción:
 1. revisa el contenido de `~/.pi/agent`
-2. confirma que existen `settings.json`, `mcp.json`, `extensions/`, `agents/`, `chains/`, `skills/` y `themes/`, y que dentro de `agents/` y `chains/` están los artefactos genéricos instalados por EURECATagent
+2. confirma que existen `settings.json`, `mcp.json`, `extensions/`, `agents/`, `chains/`, `skills/` y `themes/`, y que dentro de `agents/` y `chains/` están los artefactos genéricos instalados por IMALEagent
 3. reejecuta el instalador automático si falta algo
 
 ---

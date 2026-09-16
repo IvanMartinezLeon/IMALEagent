@@ -1,10 +1,10 @@
 @echo off
-REM Instalador de EURECATagent para Windows CMD
+REM Instalador de IMALEagent para Windows CMD
 
 setlocal enabledelayedexpansion
 
 echo.
-echo === EURECATagent Installer (Windows CMD) ===
+echo === IMALEagent Installer (Windows CMD) ===
 echo.
 
 where node >nul 2>nul
@@ -37,16 +37,16 @@ set "AGENT_CONFIG_DIR=%USERPROFILE%\.pi\agent"
 set "AGENT_BIN_DIR=%AGENT_CONFIG_DIR%\bin"
 set "WRAPPER_PATH=%AGENT_BIN_DIR%\pi.cmd"
 
-echo Instalando EURECATagent...
+echo Instalando IMALEagent...
 echo.
 call npm install -g --loglevel=error --ignore-scripts @earendil-works/pi-coding-agent 
 if errorlevel 1 (
-    echo [FAIL] EURECATagent installation failed
+    echo [FAIL] IMALEagent installation failed
     pause
     exit /b 1
 )
 
-echo Copiando la configuración de EURECATagent a %AGENT_CONFIG_DIR%...
+echo Copiando la configuración de IMALEagent a %AGENT_CONFIG_DIR%...
 if not exist "%CONFIG_SOURCE_DIR%" (
     echo [FAIL] No se encontró la carpeta de configuración en %CONFIG_SOURCE_DIR%
     pause
@@ -140,28 +140,28 @@ if not exist "%AGENT_BIN_DIR%" mkdir "%AGENT_BIN_DIR%"
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$template = Get-Content -Path '%TEMPLATE_DIR%\pi.cmd' -Raw; $content = $template.Replace('__PI_REAL_BIN__', '%PI_CMD%'); Set-Content -Path '%WRAPPER_PATH%' -Value $content -Encoding ASCII"
 if errorlevel 1 exit /b 1
 
-REM Crear comando eurecatagent
-if exist "%TEMPLATE_DIR%\eurecatagent.cmd" (
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "$template = Get-Content -Path '%TEMPLATE_DIR%\eurecatagent.cmd' -Raw; $content = $template.Replace('__PI_REAL_BIN__', '%PI_CMD%'); Set-Content -Path '%AGENT_BIN_DIR%\eurecatagent.cmd' -Value $content -Encoding ASCII"
+REM Crear comando imaleagent
+if exist "%TEMPLATE_DIR%\imaleagent.cmd" (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "$template = Get-Content -Path '%TEMPLATE_DIR%\imaleagent.cmd' -Raw; $content = $template.Replace('__PI_REAL_BIN__', '%PI_CMD%'); Set-Content -Path '%AGENT_BIN_DIR%\imaleagent.cmd' -Value $content -Encoding ASCII"
 )
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$dir = '%AGENT_BIN_DIR%'; $userPath = [Environment]::GetEnvironmentVariable('Path', 'User'); $parts = @(); if ($userPath) { $parts = $userPath.Split(';') | Where-Object { $_ -and $_.Trim() -ne '' } }; if (-not ($parts -contains $dir)) { [Environment]::SetEnvironmentVariable('Path', (($dir + ';' + ($parts -join ';')).Trim(';')), 'User') }"
 set "PATH=%AGENT_BIN_DIR%;%PATH%"
 
-echo [OK] EURECATagent installed at %WRAPPER_PATH%
+echo [OK] IMALEagent installed at %WRAPPER_PATH%
 
 echo.
 
 where pi >nul 2>nul
 if %errorlevel% equ 0 (
-    echo [OK] EURECATagent is available in your PATH
+    echo [OK] IMALEagent is available in your PATH
 ) else (
     echo [WARN] Restart your terminal to refresh PATH.
 )
 
 echo.
 echo Next steps:
-echo   1. Start: cd /your/project  ^&^&  eurecatagent
+echo   1. Start: cd /your/project  ^&^&  imaleagent
 echo   2. Auth:  /login  or  set ANTHROPIC_API_KEY=your-key
 echo   3. Repo:  /code-intelligence-doctor  ^&^&  /enable-code-intelligence
 echo   4. Docs:  https://pi.dev/docs/latest

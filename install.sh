@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# EURECATagent – Cross-platform entry point
+# IMALEagent – Cross-platform entry point
 # ==========================================
 # Uso:
-#   curl -fsSL https://eurecatagent.dev/install.sh | bash
+#   curl -fsSL https://imaleagent.dev/install.sh | bash
 #
 # Compatibilidad:
 #   macOS / Linux / Windows (Git Bash / WSL)
@@ -15,8 +15,8 @@
 #
 set -euo pipefail
 
-REPO_OWNER="IvanMartinezLeon-Eurecat"
-REPO_NAME="EURECATagent"
+REPO_OWNER="IvanMartinezLeon"
+REPO_NAME="IMALEagent"
 VERSION="${INSTALL_VERSION:-latest}"
 
 # ──────────────────────────────────────────────
@@ -24,7 +24,7 @@ VERSION="${INSTALL_VERSION:-latest}"
 # ──────────────────────────────────────────────
 case "${OS:-}" in
   Windows_NT)
-    echo "[EURECATagent] Windows nativo detectado." >&2
+    echo "[IMALEagent] Windows nativo detectado." >&2
     echo "" >&2
     echo "  Para instalar en Windows PowerShell:" >&2
     if [ "${VERSION}" = "latest" ]; then
@@ -49,29 +49,29 @@ esac
 # ──────────────────────────────────────────────
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || pwd)"
 if [ -f "${SCRIPT_DIR}/install/install.sh" ]; then
-  echo "[EURECATagent] Local install detected, using repo installer." >&2
+  echo "[IMALEagent] Local install detected, using repo installer." >&2
   exec bash "${SCRIPT_DIR}/install/install.sh"
 fi
 
 # ──────────────────────────────────────────────
 # 3. Modo curl | sh — descargar release tarball
 # ──────────────────────────────────────────────
-echo "[EURECATagent] Descargando EURECATagent ${VERSION}..." >&2
+echo "[IMALEagent] Descargando IMALEagent ${VERSION}..." >&2
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
 if [ "${VERSION}" = "latest" ]; then
-  DOWNLOAD_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest/download/eurecatagent.tar.gz"
+  DOWNLOAD_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest/download/imaleagent.tar.gz"
 else
-  DOWNLOAD_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${VERSION}/eurecatagent.tar.gz"
+  DOWNLOAD_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${VERSION}/imaleagent.tar.gz"
 fi
 
 curl -fsSL "${DOWNLOAD_URL}" | tar xz -C "${TMP_DIR}"
 
 if [ ! -f "${TMP_DIR}/install/install.sh" ]; then
-  echo "[EURECATagent] ERROR: El tarball descargado no contiene install/install.sh" >&2
-  echo "[EURECATagent] URL: ${DOWNLOAD_URL}" >&2
+  echo "[IMALEagent] ERROR: El tarball descargado no contiene install/install.sh" >&2
+  echo "[IMALEagent] URL: ${DOWNLOAD_URL}" >&2
   exit 1
 fi
 

@@ -1,6 +1,6 @@
 # IML: Index & Quick Navigation
 
-> **Implementation & Learning Guidelines for EURECAT Projects**
+> **Implementation & Learning Guidelines for IMALE Projects**
 
 ---
 
@@ -114,7 +114,7 @@ bash grep -n "exact_string" path/to/file.ext
 ## 🔗 Quick Links
 
 ### Core Resources
-- **EURECATagent Main:** `../README.md` (main repo)
+- **IMALEagent Main:** `../README.md` (main repo)
 - **Keko Project:** Example Flutter project following these standards
 - **Code Intelligence:** Run `/code-intelligence-doctor` in Pi
 
@@ -134,7 +134,7 @@ A: Read [`README.md`](README.md) (5 min), then [`EXPLORATION_STRATEGY.md`](EXPLO
 A: Copy [`templates/project-exploration-guide.md`](templates/project-exploration-guide.md) and customize with your specifics.
 
 **Q: Who maintains IML?**  
-A: EURECAT Engineering Leadership. Submit PRs for improvements.
+A: IMALE Engineering Leadership. Submit PRs for improvements.
 
 **Q: How do I propose changes?**  
 A: Create an issue or PR referencing this folder.
@@ -159,9 +159,9 @@ A: Create an issue or PR referencing this folder.
 ## 📅 Version & Status
 
 - **Created:** June 2026
-- **Status:** Active, EURECAT-wide
+- **Status:** Active, IMALE-wide
 - **Last Updated:** June 2026
-- **Maintainer:** EURECAT Engineering
+- **Maintainer:** IMALE Engineering
 
 ---
 

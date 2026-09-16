@@ -206,7 +206,7 @@ Even then, narrow the scope first: `grep -n "x" path/to/known/file.ext`
 ## Related Resources
 
 - **Generic Exploration Guide:** [Reference iml/EXPLORATION_STRATEGY.md](../../iml/EXPLORATION_STRATEGY.md)
-- **EURECATagent Docs:** [See main README]
+- **IMALEagent Docs:** [See main README]
 - **Code Intelligence in Pi:** Run `/code-intelligence-doctor` in Pi
 - **Project README:** [Link to main README]
 

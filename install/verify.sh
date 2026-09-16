@@ -8,7 +8,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}=== EURECATagent Verification ===${NC}"
+echo -e "${BLUE}=== IMALEagent Verification ===${NC}"
 echo ""
 
 CHECKS_PASSED=0
@@ -32,8 +32,8 @@ echo -e "${BLUE}== Verificaciones del Sistema ==${NC}"
 echo ""
 check_command "node" "Node.js"
 check_command "npm" "npm"
-check_command "pi" "EURECATagent"
-check_command "eurecatagent" "EURECATagent CLI"
+check_command "pi" "IMALEagent"
+check_command "imaleagent" "IMALEagent CLI"
 
 echo ""
 echo -e "${BLUE}== Variables de Entorno (Opcional) ==${NC}"
@@ -42,21 +42,21 @@ if [ -n "${ANTHROPIC_API_KEY}" ]; then
 	echo -e "${GREEN}✓ ANTHROPIC_API_KEY${NC}: Configurada"
 	((CHECKS_PASSED++))
 else
-	echo -e "${YELLOW}⚠ ANTHROPIC_API_KEY${NC}: No configurada (puedes usar /login en EURECATagent)"
+	echo -e "${YELLOW}⚠ ANTHROPIC_API_KEY${NC}: No configurada (puedes usar /login en IMALEagent)"
 fi
 
 echo ""
-echo -e "${BLUE}== Información de EURECATagent ==${NC}"
+echo -e "${BLUE}== Información de IMALEagent ==${NC}"
 echo ""
 
 if command -v pi &>/dev/null; then
 	AGENT_CONFIG_DIR="${HOME}/.pi/agent"
 
 	if [ -f "${AGENT_CONFIG_DIR}/settings.json" ]; then
-		echo -e "${GREEN}✓ Configuración EURECAT${NC}: ${AGENT_CONFIG_DIR}"
+		echo -e "${GREEN}✓ Configuración IMALE${NC}: ${AGENT_CONFIG_DIR}"
 		((CHECKS_PASSED++))
 	else
-		echo -e "${YELLOW}⚠ Configuración EURECAT${NC}: No encontrada en ${AGENT_CONFIG_DIR}"
+		echo -e "${YELLOW}⚠ Configuración IMALE${NC}: No encontrada en ${AGENT_CONFIG_DIR}"
 	fi
 
 	PI_LIST="$(pi list 2>/dev/null || true)"
@@ -107,24 +107,24 @@ if command -v pi &>/dev/null; then
 		echo -e "${YELLOW}⚠ context-mode MCP${NC}: No detectado en ${AGENT_CONFIG_DIR}/mcp.json"
 	fi
 
-	EURECAT_EXTENSIONS=(
+	IMALE_EXTENSIONS=(
 		"extensions/ai-router.ts"
-		"extensions/eurecat-header.ts"
-		"extensions/eurecat-preset.ts"
+		"extensions/imale-header.ts"
+		"extensions/imale-preset.ts"
 		"extensions/lib/shared-ui.ts"
 	)
 	MISSING_EXTENSIONS=0
-	for ext in "${EURECAT_EXTENSIONS[@]}"; do
+	for ext in "${IMALE_EXTENSIONS[@]}"; do
 		if [ ! -f "${AGENT_CONFIG_DIR}/${ext}" ]; then
 			echo -e "${YELLOW}⚠ Extensión${NC}: ${ext} no encontrada"
 			((MISSING_EXTENSIONS++))
 		fi
 	done
 	if [ ${MISSING_EXTENSIONS} -eq 0 ]; then
-		echo -e "${GREEN}✓ Extensiones EURECAT${NC}: Instaladas en ${AGENT_CONFIG_DIR}/extensions"
+		echo -e "${GREEN}✓ Extensiones IMALE${NC}: Instaladas en ${AGENT_CONFIG_DIR}/extensions"
 		((CHECKS_PASSED++))
 	else
-		echo -e "${RED}✗ Extensiones EURECAT${NC}: Faltan ${MISSING_EXTENSIONS} archivo(s)"
+		echo -e "${RED}✗ Extensiones IMALE${NC}: Faltan ${MISSING_EXTENSIONS} archivo(s)"
 		((CHECKS_FAILED++))
 	fi
 
@@ -168,7 +168,7 @@ if command -v pi &>/dev/null; then
 		((CHECKS_FAILED++))
 	fi
 else
-	echo -e "${RED}EURECATagent no está instalado${NC}"
+	echo -e "${RED}IMALEagent no está instalado${NC}"
 	echo "Ejecuta: bash install.sh"
 fi
 

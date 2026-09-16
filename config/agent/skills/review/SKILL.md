@@ -2,7 +2,7 @@
 name: review
 description: Expert in code review, quality control, and security. Use when reviewing pull requests, checking coding standards, or finding optimizations.
 metadata:
-  author: eurecat.org
+  author: imale.dev
   version: "2.0"
 ---
 # Skill de Revisión de Código (Review)

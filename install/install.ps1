@@ -1,4 +1,4 @@
-# Instalador de EURECATagent para Windows PowerShell
+# Instalador de IMALEagent para Windows PowerShell
 
 $Green = [System.ConsoleColor]::Green
 $Red = [System.ConsoleColor]::Red
@@ -32,7 +32,7 @@ function Write-Info {
     Write-Host $Message -ForegroundColor $Blue
 }
 
-Write-Header "EURECATagent Installer (Windows PowerShell)"
+Write-Header "IMALEagent Installer (Windows PowerShell)"
 Write-Host ""
 
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
@@ -97,7 +97,7 @@ function Ensure-AgentBinOnUserPath {
     [Environment]::SetEnvironmentVariable("Path", ($newUserPath -join ';'), "User")
 }
 
-Write-Info "Instalando EURECATagent..."
+Write-Info "Instalando IMALEagent..."
 Write-Host ""
 npm install -g --loglevel=error --ignore-scripts @earendil-works/pi-coding-agent
 if ($LASTEXITCODE -ne 0) {
@@ -105,7 +105,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Write-Info "Copiando la configuración de EURECATagent a $agentConfigDir..."
+Write-Info "Copiando la configuración de IMALEagent a $agentConfigDir..."
 if (-not (Test-Path $configSourceDir)) {
     Write-Error-Custom "No se encontró la carpeta de configuración en $configSourceDir"
     exit 1
@@ -181,33 +181,33 @@ $wrapperTemplate = Get-Content -Path $wrapperTemplatePath -Raw
 $wrapperContent = $wrapperTemplate.Replace('__PI_REAL_BIN__', $piExecutable)
 Set-Content -Path $wrapperPath -Value $wrapperContent -Encoding ASCII
 
-# Crear comando eurecatagent
-$eureWrapperTemplatePath = Join-Path $templateDir "eurecatagent.cmd"
-if (Test-Path $eureWrapperTemplatePath) {
-    $eureCatAgentPath = Join-Path $agentBinDir "eurecatagent.cmd"
-    $eureTemplate = Get-Content -Path $eureWrapperTemplatePath -Raw
-    $eureContent = $eureTemplate.Replace('__PI_REAL_BIN__', $piExecutable)
-    Set-Content -Path $eureCatAgentPath -Value $eureContent -Encoding ASCII
+# Crear comando imaleagent
+$imaleWrapperTemplatePath = Join-Path $templateDir "imaleagent.cmd"
+if (Test-Path $imaleWrapperTemplatePath) {
+    $imaleAgentPath = Join-Path $agentBinDir "imaleagent.cmd"
+    $imaleTemplate = Get-Content -Path $imaleWrapperTemplatePath -Raw
+    $imaleContent = $imaleTemplate.Replace('__PI_REAL_BIN__', $piExecutable)
+    Set-Content -Path $imaleAgentPath -Value $imaleContent -Encoding ASCII
 }
 
 Ensure-AgentBinOnUserPath -AgentBinDir $agentBinDir
 $env:Path = "$agentBinDir;$env:Path"
 
-Write-Success "EURECATagent installed at $wrapperPath"
+Write-Success "IMALEagent installed at $wrapperPath"
 
 Write-Host ""
-Write-Header "EURECATagent installed successfully"
+Write-Header "IMALEagent installed successfully"
 Write-Host ""
 
 if (Get-Command pi -ErrorAction SilentlyContinue) {
-    Write-Success "EURECATagent is available in your PATH"
+    Write-Success "IMALEagent is available in your PATH"
 } else {
     Write-Warning-Custom "Restart your terminal to refresh PATH."
 }
 
 Write-Host ""
 Write-Info "Next steps:"
-Write-Host "  1. Start: cd /your/project  &&  eurecatagent"
+Write-Host "  1. Start: cd /your/project  &&  imaleagent"
 Write-Host "  2. Auth:  /login  or  `$env:ANTHROPIC_API_KEY='your-key'"
 Write-Host "  3. Repo:  /code-intelligence-doctor  &&  /enable-code-intelligence"
 Write-Host "  4. Docs:  https://pi.dev/docs/latest"

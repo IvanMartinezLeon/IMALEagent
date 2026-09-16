@@ -2,7 +2,7 @@
 name: api-design
 description: Expert in designing and reviewing APIs (REST, GraphQL). Use when defining endpoints, contracts, error handling, versioning, or client-server communication.
 metadata:
-  author: eurecat.org
+  author: imale.dev
   version: "1.0"
 ---
 # Skill de Diseño de APIs

@@ -2,7 +2,7 @@
 name: security
 description: Expert in application security, vulnerability detection, and secure coding practices. Use when reviewing code for security issues, handling secrets, or validating inputs.
 metadata:
-  author: eurecat.org
+  author: imale.dev
   version: "1.0"
 ---
 # Skill de Seguridad (Security)

@@ -1,10 +1,10 @@
-# Colores del tema Eurecat
+# Colores del tema IMALE
 
-> Fuente: `/Users/ivan.martinezl/.pi/agent/themes/eurecat-theme.json`
+> Fuente: `/Users/ivan.martinezl/.pi/agent/themes/imale-theme.json`
 
 ## Resumen
 
-Este documento muestra los tokens de color configurados en el tema `eurecat-theme`, con ejemplos visuales y su uso principal.
+Este documento muestra los tokens de color configurados en el tema `imale-theme`, con ejemplos visuales y su uso principal.
 
 ## Paleta base
 
@@ -98,7 +98,7 @@ Este documento muestra los tokens de color configurados en el tema `eurecat-them
 
 ## Vistas previas estilo TUI de Pi
 
-Estos ejemplos se acercan más a cómo se usa realmente el tema dentro de la interfaz TUI de Pi: cabecera personalizada, área de conversación, tarjetas de herramientas, renderizado Markdown, bordes del editor, filas seleccionadas, línea de estado y el pie alineado a la derecha que usa la extensión de Eurecat.
+Estos ejemplos se acercan más a cómo se usa realmente el tema dentro de la interfaz TUI de Pi: cabecera personalizada, área de conversación, tarjetas de herramientas, renderizado Markdown, bordes del editor, filas seleccionadas, línea de estado y el pie alineado a la derecha que usa la extensión de IMALE.
 
 ### 1. Vista completa de sesión
 
@@ -254,7 +254,7 @@ Pi usa colores de borde para comunicar el modo y el nivel de razonamiento. Esto 
   <div><span style="color:#6c6c6c;">•</span> <span style="color:#6c6c6c;">fotograma de trabajo 4</span></div>
 </div>
 
-### 8. Pie usado por la extensión de Eurecat
+### 8. Pie usado por la extensión de IMALE
 
 Esta vista refleja más de cerca la implementación del pie personalizado: metadatos atenuados, separadores `dim` y colores de advertencia/error solo cuando sube el uso de contexto.
 
@@ -360,7 +360,7 @@ $'\e[38;5;242mgoogle/gemini-3-pro \e[38;5;240m|\e[38;5;242m ↑18.2k ↓4.7k \e[
 
 ```bash
 printf '%b\n' \
-$'\e[38;2;88;166;255mDEMO DEL TEMA EURECAT\e[0m' \
+$'\e[38;2;88;166;255mDEMO DEL TEMA IMALE\e[0m' \
 $'\e[38;5;242mthinking: escaneando archivos del proyecto…\e[0m' \
 $'\e[48;2;30;46;30m\e[38;2;88;166;255m read \e[0m \e[38;2;230;237;243mPlantilla README cargada\e[0m' \
 $'\e[38;2;255;123;114m# Módulo de autenticación\e[0m' \

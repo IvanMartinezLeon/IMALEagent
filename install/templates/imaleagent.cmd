@@ -14,7 +14,7 @@ if %errorlevel% equ 0 (
 
 :project_root_resolved
 if not defined PROJECT_ROOT set "PROJECT_ROOT=%CD%"
-set "XDG_DATA_HOME=%PROJECT_ROOT%\.eurecat-data"
+set "XDG_DATA_HOME=%PROJECT_ROOT%\.imale-data"
 
 call "%PI_REAL_BIN%" %*
 set "EXIT_CODE=%ERRORLEVEL%"

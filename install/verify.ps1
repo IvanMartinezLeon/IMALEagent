@@ -7,7 +7,7 @@ $checksPass = 0
 $checksFail = 0
 
 Write-Host ""
-Write-Host "=== EURECATagent Verification ===" -ForegroundColor $Blue
+Write-Host "=== IMALEagent Verification ===" -ForegroundColor $Blue
 Write-Host ""
 
 function Check-Command {
@@ -31,8 +31,8 @@ Write-Host "== Verificaciones del Sistema ==" -ForegroundColor $Blue
 Write-Host ""
 Check-Command "node" "Node.js"
 Check-Command "npm" "npm"
-Check-Command "pi" "EURECATagent"
-Check-Command "eurecatagent" "EURECATagent CLI"
+Check-Command "pi" "IMALEagent"
+Check-Command "imaleagent" "IMALEagent CLI"
 
 Write-Host ""
 Write-Host "== Variables de Entorno (Opcional) ==" -ForegroundColor $Blue
@@ -41,20 +41,20 @@ if ($env:ANTHROPIC_API_KEY) {
     Write-Host "✓ ANTHROPIC_API_KEY : Configurada" -ForegroundColor $Green
     $global:checksPass++
 } else {
-    Write-Host "⚠ ANTHROPIC_API_KEY : No configurada (puedes usar /login en EURECATagent)" -ForegroundColor $Yellow
+    Write-Host "⚠ ANTHROPIC_API_KEY : No configurada (puedes usar /login en IMALEagent)" -ForegroundColor $Yellow
 }
 
 Write-Host ""
-Write-Host "== Información de EURECATagent ==" -ForegroundColor $Blue
+Write-Host "== Información de IMALEagent ==" -ForegroundColor $Blue
 Write-Host ""
 
 if (Get-Command pi -ErrorAction SilentlyContinue) {
     $agentConfigDir = Join-Path $HOME ".pi\agent"
     if (Test-Path (Join-Path $agentConfigDir "settings.json")) {
-        Write-Host "✓ Configuración EURECAT : $agentConfigDir" -ForegroundColor $Green
+        Write-Host "✓ Configuración IMALE : $agentConfigDir" -ForegroundColor $Green
         $global:checksPass++
     } else {
-        Write-Host "⚠ Configuración EURECAT : No encontrada en $agentConfigDir" -ForegroundColor $Yellow
+        Write-Host "⚠ Configuración IMALE : No encontrada en $agentConfigDir" -ForegroundColor $Yellow
     }
 
     $piPackages = pi list 2>$null
@@ -108,18 +108,18 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         Write-Host "⚠ context-mode MCP : No detectado en $agentMcpConfig" -ForegroundColor $Yellow
     }
 
-    $eurecatExtensions = @(
+    $imaleExtensions = @(
         (Join-Path $agentConfigDir "extensions\ai-router.ts"),
-        (Join-Path $agentConfigDir "extensions\eurecat-header.ts"),
-        (Join-Path $agentConfigDir "extensions\eurecat-preset.ts"),
+        (Join-Path $agentConfigDir "extensions\imale-header.ts"),
+        (Join-Path $agentConfigDir "extensions\imale-preset.ts"),
         (Join-Path $agentConfigDir "extensions\lib\shared-ui.ts")
     )
-    $missingExtensions = ($eurecatExtensions | Where-Object { -not (Test-Path $_) }).Count
+    $missingExtensions = ($imaleExtensions | Where-Object { -not (Test-Path $_) }).Count
     if ($missingExtensions -eq 0) {
-        Write-Host "✓ Extensiones EURECAT : Instaladas en $agentConfigDir\extensions" -ForegroundColor $Green
+        Write-Host "✓ Extensiones IMALE : Instaladas en $agentConfigDir\extensions" -ForegroundColor $Green
         $global:checksPass++
     } else {
-        Write-Host "✗ Extensiones EURECAT : Faltan $missingExtensions archivo(s)" -ForegroundColor $Red
+        Write-Host "✗ Extensiones IMALE : Faltan $missingExtensions archivo(s)" -ForegroundColor $Red
         $global:checksFail++
     }
 
@@ -153,7 +153,7 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         $global:checksFail++
     }
 } else {
-    Write-Host "EURECATagent no está instalado" -ForegroundColor $Red
+    Write-Host "IMALEagent no está instalado" -ForegroundColor $Red
     Write-Host "Ejecuta: .\install.ps1"
 }
 

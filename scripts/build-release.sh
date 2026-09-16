@@ -7,14 +7,14 @@
 #
 # El tarball generado contiene solo lo necesario para instalar:
 #   - install/      (scripts de instalación para todas las plataformas)
-#   - config/agent/ (configuración EURECAT)
+#   - config/agent/ (configuración IMALE)
 #
-# El resultado se escribe en dist/eurecatagent.tar.gz
+# El resultado se escribe en dist/imaleagent.tar.gz
 #
 # Ejemplo:
 #   bash scripts/build-release.sh v1.2.3
-#   # → dist/eurecatagent-v1.2.3.tar.gz
-#   # → dist/eurecatagent.tar.gz          (alias latest)
+#   # → dist/imaleagent-v1.2.3.tar.gz
+#   # → dist/imaleagent.tar.gz          (alias latest)
 #
 set -euo pipefail
 
@@ -26,7 +26,7 @@ if [ -z "${VERSION}" ]; then
   VERSION="$(cd "${PROJECT_ROOT}" && git describe --tags --always 2>/dev/null || echo "dev")"
 fi
 
-echo "📦 EURECATagent Release Builder"
+echo "📦 IMALEagent Release Builder"
 echo "   Versión: ${VERSION}"
 echo "   Proyecto: ${PROJECT_ROOT}"
 echo ""
@@ -44,8 +44,8 @@ DIST_DIR="${PROJECT_ROOT}/dist"
 mkdir -p "${DIST_DIR}"
 
 # ── Empaquetar ────────────────────────────────
-TARBALL="${DIST_DIR}/eurecatagent.tar.gz"
-TARBALL_TAGGED="${DIST_DIR}/eurecatagent-${VERSION}.tar.gz"
+TARBALL="${DIST_DIR}/imaleagent.tar.gz"
+TARBALL_TAGGED="${DIST_DIR}/imaleagent-${VERSION}.tar.gz"
 
 echo "📁 Contenido del tarball:"
 echo "   install/"
@@ -88,7 +88,7 @@ echo "      - install/install.bat"
 echo ""
 echo "   Los usuarios podrán instalar con:"
 echo "   macOS/Linux/Git Bash:"
-echo "     curl -fsSL https://github.com/EURECATagent/install.sh | bash"
+echo "     curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.sh | bash"
 echo "   Windows PowerShell:"
-echo "     iwr -useb https://github.com/EURECATagent/install.ps1 | iex"
+echo "     iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon/IMALEagent/release/install.ps1 | iex"
 echo ""

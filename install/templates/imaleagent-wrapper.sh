@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EURECATagent wrapper - delegates to the real pi binary
+# IMALEagent wrapper - delegates to the real pi binary
 set -euo pipefail
 
 PI_REAL_BIN="__PI_REAL_BIN__"
@@ -17,6 +17,6 @@ resolve_project_root() {
 }
 
 PROJECT_ROOT="$(resolve_project_root)"
-export XDG_DATA_HOME="${PROJECT_ROOT}/.eurecat-data"
+export XDG_DATA_HOME="${PROJECT_ROOT}/.imale-data"
 
 exec "$PI_REAL_BIN" "$@"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# EURECAT agent Uninstaller for Linux/macOS
-# Uninstall script for EURECATagent
+# IMALEagent Uninstaller for Linux/macOS
+# Uninstall script for IMALEagent
 
 set -e
 
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}=== EURECATagent Uninstaller (Linux/macOS) ===${NC}"
+echo -e "${BLUE}=== IMALEagent Uninstaller (Linux/macOS) ===${NC}"
 echo ""
 
 # Check if npm is installed
@@ -21,7 +21,7 @@ if ! command -v npm &>/dev/null; then
 	exit 1
 fi
 
-echo -e "${YELLOW}This will uninstall EURECATagent from your system.${NC}"
+echo -e "${YELLOW}This will uninstall IMALEagent from your system.${NC}"
 read -p "Are you sure? (y/N) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -85,7 +85,7 @@ check_config_presence "chains/generic-implement-safe.chain.md" "generic-implemen
 check_config_presence "chains/generic-research-and-plan.chain.md" "generic-research-and-plan chain"
 
 echo ""
-echo -e "${YELLOW}Removing EURECAT packages...${NC}"
+echo -e "${YELLOW}Removing IMALE packages...${NC}"
 
 if [ -n "${PI_BIN}" ]; then
 	echo -e "${YELLOW}  Desinstalando Ask User...${NC}"
@@ -124,19 +124,19 @@ if [ -n "${PI_BIN}" ]; then
 	fi
 fi
 
-echo -e "${YELLOW}Uninstalling EURECATagent...${NC}"
+echo -e "${YELLOW}Uninstalling IMALEagent...${NC}"
 
 # Uninstall the underlying agent using npm
 npm uninstall -g @earendil-works/pi-coding-agent
 
-echo -e "${YELLOW}Removing EURECAT configuration from ${AGENT_CONFIG_DIR}...${NC}"
+echo -e "${YELLOW}Removing IMALE configuration from ${AGENT_CONFIG_DIR}...${NC}"
 rm -f "${AGENT_CONFIG_DIR}/APPEND_SYSTEM.md"
 rm -f "${AGENT_CONFIG_DIR}/logo.txt"
 rm -f "${AGENT_CONFIG_DIR}/settings.json"
 rm -f "${AGENT_CONFIG_DIR}/mcp.json"
-rm -f "${AGENT_CONFIG_DIR}/extensions/eurecat-header.ts"
+rm -f "${AGENT_CONFIG_DIR}/extensions/imale-header.ts"
 rm -f "${AGENT_CONFIG_DIR}/extensions/ai-router.ts"
-rm -f "${AGENT_CONFIG_DIR}/themes/eurecat-theme.json"
+rm -f "${AGENT_CONFIG_DIR}/themes/imale-theme.json"
 rm -f "${AGENT_CONFIG_DIR}/agents/generic-context-builder.md"
 rm -f "${AGENT_CONFIG_DIR}/agents/generic-planner.md"
 rm -f "${AGENT_CONFIG_DIR}/agents/generic-worker.md"
@@ -147,7 +147,7 @@ rm -f "${AGENT_CONFIG_DIR}/chains/generic-implement-safe.chain.md"
 rm -f "${AGENT_CONFIG_DIR}/chains/generic-research-and-plan.chain.md"
 rm -rf "${AGENT_CONFIG_DIR}/skills/architecture"
 rm -rf "${AGENT_CONFIG_DIR}/skills/documentation"
-rm -rf "${AGENT_CONFIG_DIR}/skills/eurecat-brain"
+rm -rf "${AGENT_CONFIG_DIR}/skills/imale-brain"
 rm -rf "${AGENT_CONFIG_DIR}/skills/fix"
 rm -rf "${AGENT_CONFIG_DIR}/skills/learn"
 rm -rf "${AGENT_CONFIG_DIR}/skills/review"
@@ -161,7 +161,7 @@ rm -rf "${AGENT_CONFIG_DIR}/npm/node_modules/pi-mcp-adapter"
 rm -rf "${AGENT_CONFIG_DIR}/npm/node_modules/pi-subagents"
 
 # Eliminar comandos
-rm -f "${AGENT_CONFIG_DIR}/bin/eurecatagent"
+rm -f "${AGENT_CONFIG_DIR}/bin/imaleagent"
 rm -f "${AGENT_CONFIG_DIR}/bin/pi"
 rmdir "${AGENT_CONFIG_DIR}/bin" 2>/dev/null || true
 
@@ -189,7 +189,7 @@ else
 	echo -e "  ${GREEN}✓${NC} Configuración eliminada de ${AGENT_CONFIG_DIR}"
 fi
 echo ""
-echo -e "${GREEN}[OK] EURECATagent uninstalled${NC}"
+echo -e "${GREEN}[OK] IMALEagent uninstalled${NC}"
 echo ""
 echo -e "${YELLOW}Other package managers: pnpm remove -g @earendil-works/pi-coding-agent / yarn global remove ... / bun uninstall -g ...${NC}"
 echo ""
