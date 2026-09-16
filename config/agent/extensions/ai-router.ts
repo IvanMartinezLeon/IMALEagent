@@ -99,7 +99,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     }
 
     if (routerState.lastPromptMode === "implement") {
-      return "Delegate to generic-implement-safe chain via subagent tool";
+      return "Prefer one scripted workflow (subagent workflowScript), or /prompt-workflow generic-implement-safe";
     }
 
     return "Use built-in tools normally; prefer code-intelligence/context-mode when clearly beneficial";
@@ -165,8 +165,11 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     }
 
     if (capabilities.subagentsInstalled) {
-      parts.push("");
-      parts.push(...getSubagentInstructions(promptText, routerState.lastPromptMode));
+      const subagentInstructions = getSubagentInstructions(promptText, routerState.lastPromptMode);
+      if (subagentInstructions.length > 0) {
+        parts.push("");
+        parts.push(...subagentInstructions);
+      }
     }
 
     parts.push("- Once you know the relevant files, switch to the built-in `read`, `edit`, `write`, and focused `bash` commands.");
@@ -354,46 +357,96 @@ function classifyPrompt(prompt: string): PromptMode {
 
 function getSubagentInstructions(prompt: string, mode: PromptMode): string[] {
   const normalized = prompt.toLowerCase();
-  const instructions: string[] = [];
-
-  instructions.push("### Subagent Dispatch");
-  instructions.push("You have the `subagent` tool available. Use it to delegate work to specialized subagents.");
-  instructions.push("When the user's request matches one of the patterns below, you MUST dispatch the corresponding chain or agent instead of doing the work yourself:");
-  instructions.push("");
+  const recipes: string[] = [];
 
   if (mode === "structural") {
-    instructions.push("**Structural discovery** → Use `subagent` to run `generic-discovery` chain:");
-    instructions.push("  subagent({ chainName: \"generic-discovery\", task: \"<original request>\" })");
-    instructions.push("");
+    recipes.push(
+      ...scriptedRecipe("Structural discovery", "/prompt-workflow generic-discovery", [
+        "const scout = await runs.run('scout', { agent: 'scout', task: '<original request>' });",
+        "return runs.run('context', { agent: 'generic-context-builder', task: '<original request>' + ' Scout findings: ' + scout.output });",
+      ]),
+    );
   }
 
   if (mode === "review") {
-    instructions.push("**Code review** → Use `subagent` to run `generic-parallel-review`:");
-    instructions.push("  subagent({ agent: \"generic-parallel-review\", task: \"<original request>\" })");
-    instructions.push("");
+    recipes.push(
+      ...scriptedRecipe("Code review", "/parallel-review", [
+        "return runs.run('review', { agent: 'generic-parallel-review', task: '<original request>' });",
+      ]),
+    );
   }
 
-  if (/(implement|implementation|implementar|refactor|refactorizar|fix|arregla|bug|feature|change|cambio|modify|modificar|update|actualizar|build|crear)/.test(normalized)) {
-    instructions.push("**Implementation / changes** → Use `subagent` to run `generic-implement-safe` chain:");
-    instructions.push("  subagent({ chainName: \"generic-implement-safe\", task: \"<original request>\" })");
-    instructions.push("");
+  if (BUGFIX_RE.test(normalized)) {
+    recipes.push(
+      ...scriptedRecipe("Bug fix", "/prompt-workflow generic-fix-bug", [
+        "const scout = await runs.run('scout', { agent: 'scout', task: '<original request>' });",
+        "const fix = await runs.run('fix', { agent: 'generic-fixer', task: '<original request>' + ' Diagnosis: ' + scout.output });",
+        "return runs.run('review', { agent: 'generic-reviewer', task: '<original request>' + ' Diagnosis: ' + scout.output + ' Fix: ' + fix.output });",
+      ]),
+    );
+  } else if (IMPLEMENT_RE.test(normalized)) {
+    recipes.push(
+      ...scriptedRecipe("Implementation / changes", "/prompt-workflow generic-implement-safe", [
+        "const scout = await runs.run('scout', { agent: 'scout', task: '<original request>' });",
+        "const plan = await runs.run('plan', { agent: 'generic-planner', task: '<original request>' + ' Scout findings: ' + scout.output });",
+        "const work = await runs.run('work', { agent: 'generic-worker', task: '<original request>' + ' Plan: ' + plan.output });",
+        "return runs.run('review', { agent: 'generic-reviewer', task: '<original request>' + ' Plan: ' + plan.output + ' Result: ' + work.output });",
+      ]),
+    );
   }
 
-  if (/(research|investiga|documentation|documentación|docs|compare|comparar|library|librer|framework|best practice|patrón|approach|enfoque)/.test(normalized)) {
-    instructions.push("**Research / investigation** → Use `subagent` to run `generic-research-and-plan` chain:");
-    instructions.push("  subagent({ chainName: \"generic-research-and-plan\", task: \"<original request>\" })");
-    instructions.push("");
+  if (RESEARCH_RE.test(normalized)) {
+    recipes.push(
+      ...scriptedRecipe("Research / investigation", "/prompt-workflow generic-research-and-plan", [
+        "const external = await runs.run('research', { agent: 'researcher', task: '<original request>' });",
+        "const local = await runs.run('scout', { agent: 'scout', task: '<original request>' });",
+        "return runs.run('plan', { agent: 'generic-planner', task: '<original request>' + ' External evidence: ' + external.output + ' Local context: ' + local.output });",
+      ]),
+    );
   }
 
-  instructions.push("**Fallback**: If the request does not match any pattern above, handle it directly with built-in tools.");
+  if (recipes.length === 0) {
+    return [];
+  }
+
+  const instructions: string[] = [];
+  instructions.push("### Subagent Dispatch");
+  instructions.push("You have the `subagent` tool available. Delegate only when the operator's request authorizes it.");
+  instructions.push("If you do delegate, use exactly one scripted workflow shaped like one of these patterns:");
+  instructions.push("");
+  instructions.push(...recipes);
+  instructions.push("**Fallback**: if no pattern fits, handle the request directly with built-in tools.");
   instructions.push("");
   instructions.push("Dispatch rules:");
-  instructions.push("- Pass the user's original request as the `task` parameter.");
-  instructions.push("- After the subagent returns, present the result to the user. Do NOT re-implement what the subagent already did.");
-  instructions.push("- If the subagent reports a blocker or asks a question, relay it to the user.");
-  instructions.push("- Do not modify files while a worker subagent is running. Let the subagent be the single writer.");
+  instructions.push("- Pass the operator's original request as the child `task`; never paraphrase it into a weaker request.");
+  instructions.push("- Keep one writer per working tree. Reviewer and scout steps are read-only.");
+  instructions.push("- After the workflow returns, present the result to the user. Do NOT re-implement what the child already did.");
+  instructions.push("- If a child reports a blocker or asks a question, relay it to the user instead of silently switching execution mode.");
 
   return instructions;
+}
+
+const IMPLEMENT_RE = /(implement|implementation|implementar|refactor|refactorizar|fix|arregla|bug|feature|change|cambio|modify|modificar|update|actualizar|build|crear)/;
+const BUGFIX_RE = /(bug|arregla|arreglar|fix|fallo|regres|crash|error|broken|roto)/;
+const RESEARCH_RE = /(research|investiga|documentation|documentación|docs|compare|comparar|library|librer|framework|best practice|patrón|approach|enfoque)/;
+
+/**
+ * Render a delegation pattern as a copy-ready `workflowScript` call.
+ *
+ * `runs.run(key, { agent, task })` is the only supported orchestration surface in
+ * pi-subagents; durable `.chain.md` files and `chainName` are rejected at runtime.
+ */
+function scriptedRecipe(heading: string, humanHint: string, scriptLines: string[]): string[] {
+  return [
+    `**${heading}** → one scripted workflow (human equivalent: \`${humanHint}\`):`,
+    "",
+    "```js",
+    "subagent({ async: true, workflowScript: [",
+    ...scriptLines.map((line) => `  ${JSON.stringify(line)},`),
+    '].join("\\n") });',
+    "```",
+    "",
+  ];
 }
 
 function shouldWarnAboutBroadStructuralSearch(command: string, capabilities: CapabilityState, state: RouterState): boolean {
