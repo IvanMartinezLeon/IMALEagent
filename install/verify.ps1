@@ -189,3 +189,8 @@ if ($checksFail -eq 0) {
     Write-Host "✗ $checksFail check(s) failed — run install.ps1 first" -ForegroundColor $Red
 }
 Write-Host ""
+
+# Exit code real: sin esto el verificador siempre devolvía 0 y no podía
+# poner en rojo un pipeline ni la comprobación manual del usuario.
+if ($checksFail -gt 0) { exit 1 }
+exit 0

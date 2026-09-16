@@ -21,10 +21,10 @@ check_command() {
 	if command -v "$cmd" &>/dev/null; then
 		local version=$("$cmd" --version 2>/dev/null || echo "N/A")
 		echo -e "${GREEN}✓ $pretty_name${NC}: $version"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ $pretty_name${NC}: No instalado"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 }
 
@@ -40,7 +40,7 @@ echo -e "${BLUE}== Variables de Entorno (Opcional) ==${NC}"
 echo ""
 if [ -n "${ANTHROPIC_API_KEY}" ]; then
 	echo -e "${GREEN}✓ ANTHROPIC_API_KEY${NC}: Configurada"
-	((CHECKS_PASSED++))
+	CHECKS_PASSED=$((CHECKS_PASSED + 1))
 else
 	echo -e "${YELLOW}⚠ ANTHROPIC_API_KEY${NC}: No configurada (puedes usar /login en IMALEagent)"
 fi
@@ -54,7 +54,7 @@ if command -v pi &>/dev/null; then
 
 	if [ -f "${AGENT_CONFIG_DIR}/settings.json" ]; then
 		echo -e "${GREEN}✓ Configuración IMALE${NC}: ${AGENT_CONFIG_DIR}"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${YELLOW}⚠ Configuración IMALE${NC}: No encontrada en ${AGENT_CONFIG_DIR}"
 	fi
@@ -62,47 +62,47 @@ if command -v pi &>/dev/null; then
 	PI_LIST="$(pi list 2>/dev/null || true)"
 	if echo "${PI_LIST}" | grep -q "pi-subagents"; then
 		echo -e "${GREEN}✓ Coding Agent${NC}: Instalado y activo"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ Coding Agent${NC}: No detectado en 'pi list'"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
 	if echo "${PI_LIST}" | grep -q "pi-mcp-adapter"; then
 		echo -e "${GREEN}✓ MCP Adapter${NC}: Instalado y activo"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ MCP Adapter${NC}: No detectado en 'pi list'"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
 	if echo "${PI_LIST}" | grep -q "@catdaemon/pi-code-intelligence"; then
 		echo -e "${GREEN}✓ Code Intelligence${NC}: Instalado y activo"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ Code Intelligence${NC}: No detectado en 'pi list'"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
 	if echo "${PI_LIST}" | grep -q "pi-web-access"; then
 		echo -e "${GREEN}✓ Web Access${NC}: Instalado y activo"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ Web Access${NC}: No detectado en 'pi list'"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
 	if echo "${PI_LIST}" | grep -q "pi-ask-user"; then
 		echo -e "${GREEN}✓ Ask User${NC}: Instalado y activo"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ Ask User${NC}: No detectado en 'pi list'"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
 	if [ -f "${AGENT_CONFIG_DIR}/mcp.json" ] && grep -q '"context-mode"' "${AGENT_CONFIG_DIR}/mcp.json"; then
 		echo -e "${GREEN}✓ context-mode MCP${NC}: Configurado en ${AGENT_CONFIG_DIR}/mcp.json"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${YELLOW}⚠ context-mode MCP${NC}: No detectado en ${AGENT_CONFIG_DIR}/mcp.json"
 	fi
@@ -117,15 +117,15 @@ if command -v pi &>/dev/null; then
 	for ext in "${IMALE_EXTENSIONS[@]}"; do
 		if [ ! -f "${AGENT_CONFIG_DIR}/${ext}" ]; then
 			echo -e "${YELLOW}⚠ Extensión${NC}: ${ext} no encontrada"
-			((MISSING_EXTENSIONS++))
+			MISSING_EXTENSIONS=$((MISSING_EXTENSIONS + 1))
 		fi
 	done
 	if [ ${MISSING_EXTENSIONS} -eq 0 ]; then
 		echo -e "${GREEN}✓ Extensiones IMALE${NC}: Instaladas en ${AGENT_CONFIG_DIR}/extensions"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ Extensiones IMALE${NC}: Faltan ${MISSING_EXTENSIONS} archivo(s)"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
 	GENERIC_AGENTS=(
@@ -138,15 +138,15 @@ if command -v pi &>/dev/null; then
 	MISSING_GENERIC_AGENTS=0
 	for agent_file in "${GENERIC_AGENTS[@]}"; do
 		if [ ! -f "${AGENT_CONFIG_DIR}/agents/${agent_file}" ]; then
-			((MISSING_GENERIC_AGENTS++))
+			MISSING_GENERIC_AGENTS=$((MISSING_GENERIC_AGENTS + 1))
 		fi
 	done
 	if [ ${MISSING_GENERIC_AGENTS} -eq 0 ]; then
 		echo -e "${GREEN}✓ Subagentes genéricos${NC}: Instalados en ${AGENT_CONFIG_DIR}/agents"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ Subagentes genéricos${NC}: Faltan ${MISSING_GENERIC_AGENTS} archivo(s) en ${AGENT_CONFIG_DIR}/agents"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
 	GUIDES_AND_TEMPLATES=(
@@ -161,15 +161,15 @@ if command -v pi &>/dev/null; then
 	MISSING_GUIDES=0
 	for guide_file in "${GUIDES_AND_TEMPLATES[@]}"; do
 		if [ ! -f "${AGENT_CONFIG_DIR}/${guide_file}" ]; then
-			((MISSING_GUIDES++))
+			MISSING_GUIDES=$((MISSING_GUIDES + 1))
 		fi
 	done
 	if [ ${MISSING_GUIDES} -eq 0 ]; then
 		echo -e "${GREEN}✓ Guías y plantillas${NC}: Instaladas en ${AGENT_CONFIG_DIR}"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ Guías y plantillas${NC}: Faltan ${MISSING_GUIDES} archivo(s) en ${AGENT_CONFIG_DIR}"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
 	GENERIC_PROMPTS=(
@@ -185,15 +185,15 @@ if command -v pi &>/dev/null; then
 	MISSING_GENERIC_PROMPTS=0
 	for prompt_file in "${GENERIC_PROMPTS[@]}"; do
 		if [ ! -f "${AGENT_CONFIG_DIR}/prompts/${prompt_file}" ]; then
-			((MISSING_GENERIC_PROMPTS++))
+			MISSING_GENERIC_PROMPTS=$((MISSING_GENERIC_PROMPTS + 1))
 		fi
 	done
 	if [ ${MISSING_GENERIC_PROMPTS} -eq 0 ]; then
 		echo -e "${GREEN}✓ Prompt workflows genéricos${NC}: Instalados en ${AGENT_CONFIG_DIR}/prompts"
-		((CHECKS_PASSED++))
+		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
 		echo -e "${RED}✗ Prompt workflows genéricos${NC}: Faltan ${MISSING_GENERIC_PROMPTS} archivo(s) en ${AGENT_CONFIG_DIR}/prompts"
-		((CHECKS_FAILED++))
+		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 else
 	echo -e "${RED}IMALEagent no está instalado${NC}"
@@ -209,3 +209,7 @@ else
 	echo -e "${RED}✗ ${CHECKS_FAILED} check(s) failed — run install.sh first${NC}"
 fi
 echo ""
+
+# Exit code real: sin esto el verificador siempre devolvía 0 y no podía
+# poner en rojo un pipeline ni la comprobación manual del usuario.
+exit $((CHECKS_FAILED > 0))

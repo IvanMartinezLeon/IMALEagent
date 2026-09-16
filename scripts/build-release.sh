@@ -72,14 +72,33 @@ echo "   ${TARBALL_TAGGED}  (${ORIGINAL_SIZE_KB} KB)"
 echo "   ${TARBALL}                (alias latest)"
 echo ""
 echo "   SHA256:"
-shasum -a 256 "${TARBALL}" "${TARBALL_TAGGED}" 2>/dev/null || sha256sum "${TARBALL}" "${TARBALL_TAGGED}" 2>/dev/null
+
+# SHA256SUMS se publica como asset del release e install.sh lo verifica antes
+# de extraer. Debe referenciar solo "imaleagent.tar.gz": el alias con versión
+# es el mismo contenido y no existe todavía en el momento de la verificación.
+SUMS="${DIST_DIR}/SHA256SUMS"
+if command -v shasum >/dev/null 2>&1; then
+  (cd "${DIST_DIR}" && shasum -a 256 imaleagent.tar.gz >SHA256SUMS)
+elif command -v sha256sum >/dev/null 2>&1; then
+  (cd "${DIST_DIR}" && sha256sum imaleagent.tar.gz >SHA256SUMS)
+else
+  echo "❌ ERROR: no hay shasum ni sha256sum disponibles para generar ${SUMS}." >&2
+  echo "   install.sh verifica el checksum antes de extraer, así que este release" >&2
+  echo "   no debe publicarse sin él." >&2
+  exit 1
+fi
+
+cat "${SUMS}"
+echo ""
+echo "   Checksums: ${SUMS}  (asset obligatorio del release)"
 
 echo ""
 echo "🚀 Para publicar un release en GitHub:"
 echo "   1. Crea el tag:   git tag ${VERSION}"
 echo "   2. Sube el tag:   git push origin ${VERSION}"
-echo "   3. El workflow .github/workflows/release.yml crea el Release y sube:"
+echo "   3. El workflow .github/workflows/release.yml valida, crea el Release y sube:"
 echo "      - ${TARBALL_TAGGED}  (y su alias ${TARBALL})"
+echo "      - SHA256SUMS"
 echo "      - install.sh, install/install.sh, install/install.ps1, install/install.bat"
 echo ""
 echo "   Esos assets son los que consumen los comandos documentados:"

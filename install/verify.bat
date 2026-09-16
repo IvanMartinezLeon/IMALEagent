@@ -194,3 +194,11 @@ if !checks_fail! equ 0 (
 )
 echo.
 pause
+
+REM Exit code real: sin esto el verificador siempre devolvía 0 y no podía
+REM poner en rojo un pipeline ni la comprobación manual del usuario.
+if !checks_fail! equ 0 (
+    endlocal & exit /b 0
+) else (
+    endlocal & exit /b 1
+)
