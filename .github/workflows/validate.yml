@@ -5,6 +5,9 @@ on:
     branches: ["**"]
   pull_request:
   workflow_dispatch:
+  # Reutilizable desde release.yml para que ningún tag publique un tarball
+  # construido a partir de un commit que no pase estas validaciones.
+  workflow_call:
 
 permissions:
   contents: read

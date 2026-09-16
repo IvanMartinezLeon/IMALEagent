@@ -89,43 +89,62 @@ npm --version
 
 ---
 
-## Instalación con un solo comando (curl / iwr)
+## Instalación desde el release (sin clonar el repositorio)
 
-Instala IMALEagent sin necesidad de clonar el repositorio.
+Instala IMALEagent descargando los *assets* del release. Descarga siempre el
+script y **verifícalo con `SHA256SUMS` antes de ejecutarlo**.
 
 ### macOS / Linux / Windows (Git Bash / WSL)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.sh | sh
+BASE=https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download
+
+curl -fsSLO "${BASE}/install.sh"
+curl -fsSLO "${BASE}/SHA256SUMS"
+
+# Linux: sha256sum -c install.sh.sha256
+grep ' install\.sh$' SHA256SUMS > install.sh.sha256 && shasum -a 256 -c install.sh.sha256
+
+bash install.sh
 ```
 
 > También funciona en Windows si usas **Git Bash** o **WSL**.
+>
+> No uses `sh`: el instalador es bash (`${BASH_SOURCE[0]}`). Invócalo con `bash install.sh`.
 
-### Windows PowerShell
+`install.sh` descarga el tarball, verifica su checksum contra `SHA256SUMS` y
+aborta sin extraer nada si no coincide.
+
+### Windows (PowerShell o CMD)
+
+`install/install.ps1` e `install/install.bat` resuelven `config/agent` desde su
+propia ubicación y por eso **necesitan el árbol del repositorio**: se usan desde
+dentro del tarball, no sueltos.
 
 ```powershell
-# Ejecutar como Administrador (recomendado) o usuario
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.ps1 | iex
-```
+$base = 'https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download'
+Invoke-WebRequest -Uri "$base/imaleagent.tar.gz" -OutFile imaleagent.tar.gz
+Invoke-WebRequest -Uri "$base/SHA256SUMS" -OutFile SHA256SUMS
 
-### Windows CMD
+# Verifica el tarball antes de extraerlo
+(Get-FileHash .\imaleagent.tar.gz -Algorithm SHA256).Hash
+Get-Content .\SHA256SUMS | Select-String 'imaleagent.tar.gz'
 
-```bat
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.bat -o install.bat && install.bat
+tar -xzf imaleagent.tar.gz
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\install\install.ps1     # o install\install.bat desde CMD
 ```
 
 ### Instalar una versión específica
 
+En Unix, mediante la variable de entorno que lee `install.sh`:
+
 ```bash
-# Por variable de entorno (Unix)
-INSTALL_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.sh | sh
+INSTALL_VERSION=v1.0.0 bash install.sh
 ```
 
-```powershell
-# Versión específica en PowerShell
-$env:INSTALL_VERSION='v1.0.0'; iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.ps1 | iex
-```
+En Windows, descarga los assets de ese tag cambiando `/latest/download` por
+`/download/v1.0.0` en la URL base del bloque anterior.
 
 ---
 
@@ -581,29 +600,36 @@ git tag v1.2.3
 git push origin v1.2.3
 
 # 3. Crear release con gh CLI
+#    Mismos assets que publica release.yml: el entry point, el tarball (con su
+#    alias) y sus checksums. install/install.ps1|bat no se publican sueltos:
+#    necesitan el árbol del repo y van dentro del tarball.
 gh release create v1.2.3 \
-  dist/IMALEagent-v1.2.3.tar.gz \
-  dist/IMALEagent.tar.gz \
-  install/install.sh \
-  install/install.ps1 \
-  install/install.bat \
+  dist/imaleagent-v1.2.3.tar.gz \
+  dist/imaleagent.tar.gz \
+  dist/SHA256SUMS \
+  install.sh \
   --title "v1.2.3" \
   --notes "..."
 ```
 
-### Opción 3: GitHub RAW (desarrollo)
+### Opción 3: desde el repositorio clonado (desarrollo)
 
-Sin releases, apuntando directamente a la rama `release`:
+Sin release publicado, el camino soportado es ejecutar el instalador del propio
+repositorio (no hay rama `release` ni scripts servidos por RAW):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.sh | sh
+bash install/install.sh          # Linux / macOS / Git Bash / WSL
 ```
 
-> ⚠ **RAW no está pensado para producción.** Para instalaciones reproducibles, usa siempre un tag versionado.
+```powershell
+.\install\install.ps1            # Windows PowerShell
+```
 
-### Opción 3: Dominio propio
+> ⚠ **Desarrollo no es reproducible.** Para instalaciones reales usa siempre un tag versionado y verifica `SHA256SUMS`.
 
-Con un dominio propio (`IMALEagent.dev`), sirve el script desde un CDN o haz un redirect a GitHub RAW.
+### Opción 4: Dominio propio
+
+Con un dominio propio (`IMALEagent.dev`), sirve el script desde un CDN o haz un redirect a los assets del release en GitHub, manteniendo la verificación de `SHA256SUMS`.
 
 ---
 

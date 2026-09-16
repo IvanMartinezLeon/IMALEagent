@@ -207,25 +207,45 @@ Requisitos mínimos:
 
 ### 2. Ejecuta el instalador
 
-#### Opción rápida (curl | sh) — sin clonar el repo
+#### Opción rápida (assets del release) — sin clonar el repo
+
+Los instaladores se publican como *assets* del release junto a `SHA256SUMS`.
+Descarga y **verifica el script antes de ejecutarlo**:
 
 **macOS / Linux / Windows (Git Bash / WSL):**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.sh | sh
+BASE=https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download
+
+curl -fsSLO "${BASE}/install.sh"
+curl -fsSLO "${BASE}/SHA256SUMS"
+
+# Verifica install.sh (en Linux: sha256sum -c install.sh.sha256)
+grep ' install\.sh$' SHA256SUMS > install.sh.sha256 && shasum -a 256 -c install.sh.sha256
+
+bash install.sh
 ```
 
-**Windows PowerShell:**
+`install.sh` descarga el tarball, **verifica su checksum contra `SHA256SUMS`** y aborta sin extraer nada si no coincide.
+
+Para fijar una versión: `INSTALL_VERSION=v1.0.0 bash install.sh`.
+
+**Windows (PowerShell o CMD):**
+
+Los scripts de Windows necesitan el árbol del repositorio, así que el camino soportado es el tarball:
 
 ```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-iwr -useb https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.ps1 | iex
-```
+$base = 'https://github.com/IvanMartinezLeon/IMALEagent/releases/latest/download'
+Invoke-WebRequest -Uri "$base/imaleagent.tar.gz" -OutFile imaleagent.tar.gz
+Invoke-WebRequest -Uri "$base/SHA256SUMS" -OutFile SHA256SUMS
 
-**Windows CMD:**
+# Verifica el tarball antes de extraerlo
+(Get-FileHash .\imaleagent.tar.gz -Algorithm SHA256).Hash
+Get-Content .\SHA256SUMS | Select-String 'imaleagent.tar.gz'
 
-```bat
-curl -fsSL https://raw.githubusercontent.com/IvanMartinezLeon-IMALE/IMALEagent/release/install.bat -o install.bat && install.bat
+tar -xzf imaleagent.tar.gz
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\install\install.ps1
 ```
 
 #### Opción desde el repositorio clonado

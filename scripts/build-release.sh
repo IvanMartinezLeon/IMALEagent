@@ -73,14 +73,18 @@ echo "   ${TARBALL}                (alias latest)"
 echo ""
 echo "   SHA256:"
 
+# ── Checksums ─────────────────────────────────
 # SHA256SUMS se publica como asset del release e install.sh lo verifica antes
 # de extraer. Debe referenciar solo "imaleagent.tar.gz": el alias con versión
 # es el mismo contenido y no existe todavía en el momento de la verificación.
+# Se incluye además install.sh para que el usuario pueda verificar el script
+# ANTES de ejecutarlo (ver README).
 SUMS="${DIST_DIR}/SHA256SUMS"
+cp "${PROJECT_ROOT}/install.sh" "${DIST_DIR}/install.sh"
 if command -v shasum >/dev/null 2>&1; then
-  (cd "${DIST_DIR}" && shasum -a 256 imaleagent.tar.gz >SHA256SUMS)
+  (cd "${DIST_DIR}" && shasum -a 256 imaleagent.tar.gz install.sh >SHA256SUMS)
 elif command -v sha256sum >/dev/null 2>&1; then
-  (cd "${DIST_DIR}" && sha256sum imaleagent.tar.gz >SHA256SUMS)
+  (cd "${DIST_DIR}" && sha256sum imaleagent.tar.gz install.sh >SHA256SUMS)
 else
   echo "❌ ERROR: no hay shasum ni sha256sum disponibles para generar ${SUMS}." >&2
   echo "   install.sh verifica el checksum antes de extraer, así que este release" >&2
@@ -99,7 +103,7 @@ echo "   2. Sube el tag:   git push origin ${VERSION}"
 echo "   3. El workflow .github/workflows/release.yml valida, crea el Release y sube:"
 echo "      - ${TARBALL_TAGGED}  (y su alias ${TARBALL})"
 echo "      - SHA256SUMS"
-echo "      - install.sh, install/install.sh, install/install.ps1, install/install.bat"
+echo "      - install.sh"
 echo ""
 echo "   Esos assets son los que consumen los comandos documentados:"
 echo "   macOS/Linux/Git Bash:"

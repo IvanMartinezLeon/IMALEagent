@@ -65,20 +65,68 @@ fi
 echo "[IMALEagent] Descargando IMALEagent ${VERSION}..." >&2
 
 TMP_DIR="$(mktemp -d)"
+# Ya no se usa `exec` para lanzar el instalador: al ser un subproceso, este trap
+# sí llega a ejecutarse y no deja el tarball extraído en /tmp.
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
+RELEASE_BASE="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases"
 if [ "${VERSION}" = "latest" ]; then
-  DOWNLOAD_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest/download/imaleagent.tar.gz"
+  RELEASE_BASE="${RELEASE_BASE}/latest/download"
 else
-  DOWNLOAD_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${VERSION}/imaleagent.tar.gz"
+  RELEASE_BASE="${RELEASE_BASE}/download/${VERSION}"
 fi
+TARBALL_URL="${RELEASE_BASE}/imaleagent.tar.gz"
+SUMS_URL="${RELEASE_BASE}/SHA256SUMS"
 
-curl -fsSL "${DOWNLOAD_URL}" | tar xz -C "${TMP_DIR}"
-
-if [ ! -f "${TMP_DIR}/install/install.sh" ]; then
-  echo "[IMALEagent] ERROR: El tarball descargado no contiene install/install.sh" >&2
-  echo "[IMALEagent] URL: ${DOWNLOAD_URL}" >&2
+# ──────────────────────────────────────────────
+# 3.1 Descarga a fichero (sin pipe a tar)
+# ──────────────────────────────────────────────
+if ! curl -fsSL -o "${TMP_DIR}/imaleagent.tar.gz" "${TARBALL_URL}"; then
+  echo "[IMALEagent] ERROR: no se pudo descargar el release desde ${TARBALL_URL}" >&2
   exit 1
 fi
 
-exec bash "${TMP_DIR}/install/install.sh"
+# ──────────────────────────────────────────────
+# 3.2 Verificación de integridad obligatoria
+# ──────────────────────────────────────────────
+if ! curl -fsSL -o "${TMP_DIR}/SHA256SUMS" "${SUMS_URL}" || [ ! -s "${TMP_DIR}/SHA256SUMS" ]; then
+  echo "[IMALEagent] ERROR: el release no publica SHA256SUMS (${SUMS_URL})" >&2
+  echo "[IMALEagent] Sin checksum no se extrae ni ejecuta el tarball." >&2
+  echo "[IMALEagent] Usa un release que incluya SHA256SUMS o instala desde el repo clonado:" >&2
+  echo "             bash install/install.sh" >&2
+  exit 1
+fi
+
+verify_sha256() {
+  # Solo la entrada del tarball: SHA256SUMS también cubre install.sh, que no
+  # está presente en este directorio temporal.
+  grep ' imaleagent\.tar\.gz$' "${TMP_DIR}/SHA256SUMS" >"${TMP_DIR}/SHA256SUMS.tarball" || return 1
+  if command -v sha256sum >/dev/null 2>&1; then
+    (cd "${TMP_DIR}" && sha256sum -c SHA256SUMS.tarball)
+  elif command -v shasum >/dev/null 2>&1; then
+    (cd "${TMP_DIR}" && shasum -a 256 -c SHA256SUMS.tarball)
+  else
+    echo "[IMALEagent] ERROR: no hay sha256sum ni shasum disponibles para verificar." >&2
+    return 1
+  fi
+}
+
+if ! verify_sha256 >/dev/null; then
+  echo "[IMALEagent] ERROR: el checksum del tarball NO coincide con SHA256SUMS." >&2
+  echo "[IMALEagent] Descarga abortada. No se ha extraído ni ejecutado nada." >&2
+  exit 1
+fi
+echo "[IMALEagent] ✓ Checksum verificado contra SHA256SUMS" >&2
+
+# ──────────────────────────────────────────────
+# 3.3 Extracción
+# ──────────────────────────────────────────────
+tar xzf "${TMP_DIR}/imaleagent.tar.gz" -C "${TMP_DIR}"
+
+if [ ! -f "${TMP_DIR}/install/install.sh" ]; then
+  echo "[IMALEagent] ERROR: El tarball descargado no contiene install/install.sh" >&2
+  echo "[IMALEagent] URL: ${TARBALL_URL}" >&2
+  exit 1
+fi
+
+bash "${TMP_DIR}/install/install.sh"
