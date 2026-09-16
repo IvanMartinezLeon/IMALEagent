@@ -7,11 +7,8 @@ import { join } from "node:path";
 type CapabilityState = {
   cwd: string;
   repoType: "javascript-typescript" | "generic";
-  codeIntelligenceInstalled: boolean;
-  codeIntelligenceSource?: string;
   subagentsInstalled: boolean;
   subagentsSource?: string;
-  repoCodeIntelligenceConfigured: boolean;
   contextModeConfigured: boolean;
   contextModeConfigPath?: string;
 };
@@ -33,17 +30,13 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
 
   async function refreshCapabilities(cwd: string): Promise<CapabilityState> {
     const contextModeConfig = detectContextModeConfig(cwd);
-    const codeIntelligence = detectInstalledPiPackage(cwd, "@catdaemon/pi-code-intelligence");
     const subagents = detectInstalledPiPackage(cwd, "pi-subagents");
 
     capabilities = {
       cwd,
       repoType: detectRepoType(cwd),
-      codeIntelligenceInstalled: codeIntelligence.installed,
-      codeIntelligenceSource: codeIntelligence.source,
       subagentsInstalled: subagents.installed,
       subagentsSource: subagents.source,
-      repoCodeIntelligenceConfigured: hasRepoCodeIntelligenceConfig(cwd),
       contextModeConfigured: Boolean(contextModeConfig),
       contextModeConfigPath: contextModeConfig ?? undefined,
     };
@@ -56,7 +49,6 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
 
     const parts: string[] = [];
     parts.push(capabilities.repoType === "javascript-typescript" ? "js/ts repo" : "generic repo");
-    parts.push(capabilities.codeIntelligenceInstalled ? "code-intelligence ready" : "code-intelligence missing");
     parts.push(capabilities.subagentsInstalled ? "subagents ready" : "subagents missing");
     parts.push(capabilities.contextModeConfigured ? "context-mode ready" : "context-mode missing");
     parts.push(`mode:${routerState.lastPromptMode}`);
@@ -67,11 +59,8 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     const lines = [
       `Repository type: ${capabilities.repoType}`,
       `Prompt mode: ${routerState.lastPromptMode}`,
-      `Code intelligence package: ${capabilities.codeIntelligenceInstalled ? "installed" : "missing"}`,
-      `Code intelligence source: ${capabilities.codeIntelligenceSource ?? "not detected"}`,
       `Subagents package: ${capabilities.subagentsInstalled ? "installed" : "missing"}`,
       `Subagents source: ${capabilities.subagentsSource ?? "not detected"}`,
-      `Repo-local code intelligence config: ${capabilities.repoCodeIntelligenceConfigured ? "present" : "absent"}`,
       `context-mode MCP: ${capabilities.contextModeConfigured ? `configured (${capabilities.contextModeConfigPath})` : "not configured"}`,
       `Routing policy: ${describeRoutingPolicy()}`,
     ];
@@ -81,9 +70,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
 
   function describeRoutingPolicy(): string {
     if (routerState.lastPromptMode === "structural") {
-      return capabilities.codeIntelligenceInstalled
-        ? "Prefer code-intelligence search/impact before broad repo exploration"
-        : "Use focused built-in tools; code-intelligence is not installed";
+      return "Use focused built-in tools; narrow the search before broad repo exploration";
     }
 
     if (routerState.lastPromptMode === "debug-heavy") {
@@ -93,16 +80,14 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     }
 
     if (routerState.lastPromptMode === "review") {
-      return capabilities.codeIntelligenceInstalled
-        ? "Prefer code-intelligence review and impact analysis, then read targeted files"
-        : "Use focused reads and built-in tools for review";
+      return "Read targeted files, then expand only where the change is risky";
     }
 
     if (routerState.lastPromptMode === "implement") {
       return "Prefer one scripted workflow (subagent workflowScript), or /prompt-workflow generic-implement-safe";
     }
 
-    return "Use built-in tools normally; prefer code-intelligence/context-mode when clearly beneficial";
+    return "Use built-in tools normally; prefer context-mode when output may be large";
   }
 
   pi.on("session_start", async (_event, ctx) => {
@@ -129,28 +114,10 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     parts.push("## Hybrid Routing");
     parts.push(`- Repository type: ${capabilities.repoType}.`);
     parts.push(`- Detected prompt mode: ${routerState.lastPromptMode}.`);
-    parts.push(`- code-intelligence package installed: ${capabilities.codeIntelligenceInstalled ? "yes" : "no"}.`);
     parts.push(`- pi-subagents package installed: ${capabilities.subagentsInstalled ? "yes" : "no"}.`);
-    parts.push(`- Repo-local code-intelligence config present: ${capabilities.repoCodeIntelligenceConfigured ? "yes" : "no"}.`);
     parts.push(`- context-mode MCP configured: ${capabilities.contextModeConfigured ? "yes" : "no"}.`);
     parts.push("");
     parts.push("Routing rules:");
-
-    if (capabilities.codeIntelligenceInstalled) {
-      parts.push(
-        "- For architecture, related files, existing patterns, impacted callers/tests, or broad repo discovery, prefer `code_intelligence_search`, `code_intelligence_impact`, or `code_intelligence_analyze_changes` before wide `bash` or `read` exploration.",
-      );
-      parts.push(
-        "- If code intelligence is not active in this repo yet, use `/code-intelligence-doctor` and then `/enable-code-intelligence` once inside Pi.",
-      );
-      if (routerState.lastPromptMode === "review") {
-        parts.push("- For review tasks, prefer `/code-intelligence-review` before manual broad inspection.");
-      }
-    } else {
-      parts.push(
-        "- code-intelligence is not installed. Use focused built-in tools and reinstall IMALEagent if you want local code graph and impact analysis.",
-      );
-    }
 
     if (routerState.lastPromptMode === "debug-heavy" && capabilities.contextModeConfigured) {
       parts.push(
@@ -173,7 +140,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     }
 
     parts.push("- Once you know the relevant files, switch to the built-in `read`, `edit`, `write`, and focused `bash` commands.");
-    parts.push("- Keep responses concise and avoid reading many unrelated files when code-intelligence can narrow the search first.");
+    parts.push("- Keep responses concise and prefer targeted reads over broad repo exploration.");
 
     return {
       systemPrompt: `${event.systemPrompt}\n\n${parts.join("\n")}`,
@@ -188,10 +155,6 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
     if (!command) return undefined;
 
     if (ctx.hasUI) {
-      if (shouldWarnAboutBroadStructuralSearch(command, capabilities, routerState)) {
-        ctx.ui.notify("Prefer code_intelligence_search or code_intelligence_impact before broad structural searches.", "warning");
-      }
-
       if (shouldWarnAboutLargeOutput(command, capabilities)) {
         ctx.ui.setStatus("ai-router-output", "Prefer context-mode for large output/log-heavy commands");
       } else {
@@ -203,7 +166,7 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("router-status", {
-    description: "Show hybrid routing status for code-intelligence, subagents, and context-mode",
+    description: "Show hybrid routing status for subagents and context-mode",
     handler: async (_args, ctx) => {
       await refreshCapabilities(ctx.cwd);
       setStatus(ctx);
@@ -227,10 +190,10 @@ export default function aiRouterExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "router_status",
     label: "Router Status",
-    description: "Inspect code-intelligence, subagents, and context-mode readiness for the current repository.",
-    promptSnippet: "Check whether code-intelligence, subagents, and context-mode are ready before a repository exploration task.",
+    description: "Inspect subagents and context-mode readiness for the current repository.",
+    promptSnippet: "Check whether subagents and context-mode are ready before a repository exploration task.",
     promptGuidelines: [
-      "Use router_status at the start of a structural or review task when you need to know whether code-intelligence, subagents, and context-mode are available.",
+      "Use router_status at the start of a structural or review task when you need to know whether subagents and context-mode are available.",
     ],
     parameters: ROUTER_STATUS_PARAMS,
     async execute() {
@@ -251,11 +214,8 @@ function createCapabilityState(cwd: string): CapabilityState {
   return {
     cwd,
     repoType: "generic",
-    codeIntelligenceInstalled: false,
-    codeIntelligenceSource: undefined,
     subagentsInstalled: false,
     subagentsSource: undefined,
-    repoCodeIntelligenceConfigured: false,
     contextModeConfigured: false,
     contextModeConfigPath: undefined,
   };
@@ -272,10 +232,6 @@ function detectRepoType(cwd: string): CapabilityState["repoType"] {
   ];
 
   return markers.some((marker) => existsSync(join(cwd, marker))) ? "javascript-typescript" : "generic";
-}
-
-function hasRepoCodeIntelligenceConfig(cwd: string): boolean {
-  return existsSync(join(cwd, ".pi-code-intelligence.json")) || existsSync(join(cwd, ".pi", "code-intelligence.json"));
 }
 
 function detectInstalledPiPackage(cwd: string, packageName: string): { installed: boolean; source: string | null } {
@@ -447,24 +403,6 @@ function scriptedRecipe(heading: string, humanHint: string, scriptLines: string[
     "```",
     "",
   ];
-}
-
-function shouldWarnAboutBroadStructuralSearch(command: string, capabilities: CapabilityState, state: RouterState): boolean {
-  if (!capabilities.codeIntelligenceInstalled) {
-    return false;
-  }
-
-  if (state.lastPromptMode !== "structural" && state.lastPromptMode !== "review") {
-    return false;
-  }
-
-  const normalized = command.toLowerCase();
-  const usesBroadSearch = /\b(rg|grep|find)\b/.test(normalized);
-  if (!usesBroadSearch) {
-    return false;
-  }
-
-  return /(architecture|route|screen|repository|service|controller|component|hook|schema|caller|impact|references?|usage|feature|test)/.test(normalized);
 }
 
 function shouldWarnAboutLargeOutput(command: string, capabilities: CapabilityState): boolean {

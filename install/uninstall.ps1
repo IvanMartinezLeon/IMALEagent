@@ -37,28 +37,12 @@ if ($piCommand) {
 }
 
 if ($piExecutable) {
-    Write-Host "  Desinstalando Ask User..." -ForegroundColor $Yellow
-    & $piExecutable remove npm:pi-ask-user >$null 2>$null
+    Write-Host "  Desinstalando Context Mode..." -ForegroundColor $Yellow
+    & $piExecutable remove npm:context-mode >$null 2>$null
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "  ✓ Ask User desinstalado" -ForegroundColor $Green
+        Write-Host "  ✓ Context Mode desinstalado" -ForegroundColor $Green
     } else {
-        Write-Host "  ⚠ Ask User no estaba instalado" -ForegroundColor $Yellow
-    }
-
-    Write-Host "  Desinstalando Web Access..." -ForegroundColor $Yellow
-    & $piExecutable remove npm:pi-web-access >$null 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "  ✓ Web Access desinstalado" -ForegroundColor $Green
-    } else {
-        Write-Host "  ⚠ Web Access no estaba instalado" -ForegroundColor $Yellow
-    }
-
-    Write-Host "  Desinstalando Code Intelligence..." -ForegroundColor $Yellow
-    & $piExecutable remove npm:@catdaemon/pi-code-intelligence >$null 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "  ✓ Code Intelligence desinstalado" -ForegroundColor $Green
-    } else {
-        Write-Host "  ⚠ Code Intelligence no estaba instalado" -ForegroundColor $Yellow
+        Write-Host "  ⚠ Context Mode no estaba instalado" -ForegroundColor $Yellow
     }
 
     Write-Host "  Desinstalando MCP Adapter..." -ForegroundColor $Yellow
@@ -88,6 +72,9 @@ if ($LASTEXITCODE -ne 0) {
     Read-Host "Press Enter to close"
     exit $LASTEXITCODE
 }
+
+# El binario global de context-mode lo instala IMALEagent para el servidor MCP.
+npm uninstall -g context-mode >$null 2>$null
 
 Write-Host "Removing IMALE configuration from $agentConfigDir..." -ForegroundColor $Yellow
 

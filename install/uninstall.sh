@@ -71,7 +71,7 @@ check_config_presence() {
 
 echo ""
 echo -e "${YELLOW}Checking installed packages...${NC}"
-check_pi_package_presence "@catdaemon/pi-code-intelligence" "Code Intelligence"
+check_pi_package_presence "context-mode" "Context Mode"
 check_pi_package_presence "pi-mcp-adapter" "MCP Adapter"
 check_pi_package_presence "pi-subagents" "Coding Agent"
 
@@ -90,25 +90,11 @@ echo ""
 echo -e "${YELLOW}Removing IMALE packages...${NC}"
 
 if [ -n "${PI_BIN}" ]; then
-	echo -e "${YELLOW}  Desinstalando Ask User...${NC}"
-	if "${PI_BIN}" remove npm:pi-ask-user >/dev/null 2>&1; then
-		echo -e "${GREEN}  ✓ Ask User desinstalado${NC}"
+	echo -e "${YELLOW}  Desinstalando Context Mode...${NC}"
+	if "${PI_BIN}" remove npm:context-mode >/dev/null 2>&1; then
+		echo -e "${GREEN}  ✓ Context Mode desinstalado${NC}"
 	else
-		echo -e "${YELLOW}  ⚠ Ask User no estaba instalado${NC}"
-	fi
-
-	echo -e "${YELLOW}  Desinstalando Web Access...${NC}"
-	if "${PI_BIN}" remove npm:pi-web-access >/dev/null 2>&1; then
-		echo -e "${GREEN}  ✓ Web Access desinstalado${NC}"
-	else
-		echo -e "${YELLOW}  ⚠ Web Access no estaba instalado${NC}"
-	fi
-
-	echo -e "${YELLOW}  Desinstalando Code Intelligence...${NC}"
-	if "${PI_BIN}" remove npm:@catdaemon/pi-code-intelligence >/dev/null 2>&1; then
-		echo -e "${GREEN}  ✓ Code Intelligence desinstalado${NC}"
-	else
-		echo -e "${YELLOW}  ⚠ Code Intelligence no estaba instalado${NC}"
+		echo -e "${YELLOW}  ⚠ Context Mode no estaba instalado${NC}"
 	fi
 
 	echo -e "${YELLOW}  Desinstalando MCP Adapter...${NC}"
@@ -130,6 +116,9 @@ echo -e "${YELLOW}Uninstalling IMALEagent...${NC}"
 
 # Uninstall the underlying agent using npm
 npm uninstall -g @earendil-works/pi-coding-agent
+
+# El binario global de context-mode lo instala IMALEagent para el servidor MCP.
+npm uninstall -g context-mode >/dev/null 2>&1 || true
 
 echo -e "${YELLOW}Removing IMALE configuration from ${AGENT_CONFIG_DIR}...${NC}"
 # Un único helper Node para los tres desinstaladores: evita listas duplicadas.

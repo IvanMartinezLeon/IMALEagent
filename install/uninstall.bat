@@ -36,26 +36,12 @@ if exist "%NPM_GLOBAL_PREFIX%\pi.cmd" set "PI_CMD=%NPM_GLOBAL_PREFIX%\pi.cmd"
 
 :pi_remove_ready
 if defined PI_CMD (
-    echo [INFO] Desinstalando Ask User...
-    call "%PI_CMD%" remove npm:pi-ask-user >nul 2>nul
+    echo [INFO] Desinstalando Context Mode...
+    call "%PI_CMD%" remove npm:context-mode >nul 2>nul
     if errorlevel 1 (
-        echo [WARN] Ask User no estaba instalado
+        echo [WARN] Context Mode no estaba instalado
     ) else (
-        echo [OK] Ask User desinstalado
-    )
-    echo [INFO] Desinstalando Web Access...
-    call "%PI_CMD%" remove npm:pi-web-access >nul 2>nul
-    if errorlevel 1 (
-        echo [WARN] Web Access no estaba instalado
-    ) else (
-        echo [OK] Web Access desinstalado
-    )
-    echo [INFO] Desinstalando Code Intelligence...
-    call "%PI_CMD%" remove npm:@catdaemon/pi-code-intelligence >nul 2>nul
-    if errorlevel 1 (
-        echo [WARN] Code Intelligence no estaba instalado
-    ) else (
-        echo [OK] Code Intelligence desinstalado
+        echo [OK] Context Mode desinstalado
     )
     echo [INFO] Desinstalando MCP Adapter...
     call "%PI_CMD%" remove npm:pi-mcp-adapter >nul 2>nul
@@ -83,6 +69,9 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
+
+REM El binario global de context-mode lo instala IMALEagent para el servidor MCP.
+call npm uninstall -g context-mode >nul 2>nul
 
 echo Removing IMALE configuration from %AGENT_CONFIG_DIR%...
 REM Un unico helper Node para los tres desinstaladores: evita listas duplicadas

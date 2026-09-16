@@ -74,29 +74,19 @@ if (Get-Command pi -ErrorAction SilentlyContinue) {
         $global:checksFail++
     }
 
-    if ($piPackages -match "@catdaemon/pi-code-intelligence") {
-        Write-Host "✓ Code Intelligence : Instalado y activo" -ForegroundColor $Green
+    if ($piPackages -match "context-mode") {
+        Write-Host "✓ Context Mode : Instalado y activo" -ForegroundColor $Green
         $global:checksPass++
     } else {
-        Write-Host "✗ Code Intelligence : No detectado en 'pi list'" -ForegroundColor $Red
+        Write-Host "✗ Context Mode : No detectado en 'pi list'" -ForegroundColor $Red
         $global:checksFail++
     }
 
-
-
-    if ($piPackages -match "pi-web-access") {
-        Write-Host "✓ Web Access : Instalado y activo" -ForegroundColor $Green
+    if (Get-Command context-mode -ErrorAction SilentlyContinue) {
+        Write-Host "✓ Binario context-mode : Disponible en PATH" -ForegroundColor $Green
         $global:checksPass++
     } else {
-        Write-Host "✗ Web Access : No detectado en 'pi list'" -ForegroundColor $Red
-        $global:checksFail++
-    }
-
-    if ($piPackages -match "pi-ask-user") {
-        Write-Host "✓ Ask User : Instalado y activo" -ForegroundColor $Green
-        $global:checksPass++
-    } else {
-        Write-Host "✗ Ask User : No detectado en 'pi list'" -ForegroundColor $Red
+        Write-Host "✗ Binario context-mode : No encontrado en PATH (el servidor MCP no arrancara)" -ForegroundColor $Red
         $global:checksFail++
     }
 

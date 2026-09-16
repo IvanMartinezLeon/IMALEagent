@@ -7,8 +7,7 @@ Este directorio contiene los scripts y documentos necesarios para dejar preparad
 - **Pi** como agente base
 - **subagentes** para delegación y coordinación entre agentes
 - **adaptador MCP** para integración MCP
-- **code intelligence** para búsqueda semántica e impacto
-- **context-mode** para salidas grandes y contexto pesado
+- **context-mode** para salidas grandes y contexto pesado (binario global + extensión Pi)
 - **ai-router** para routing híbrido según el tipo de tarea
 - subagentes y prompt workflows genéricos reutilizables entre proyectos
 
@@ -42,8 +41,8 @@ Los scripts de este directorio realizan estas acciones:
 3. Instalan y activan:
    - subagentes
    - adaptador MCP
-   - code intelligence
-4. Configuran `context-mode` en `mcp.json`.
+   - extensión Pi de `context-mode`
+4. Instalan el binario global `context-mode` y lo configuran en `mcp.json`.
 5. Dejan disponible la extensión `ai-router`.
 6. Preparan el comando `IMALEagent` (y `pi` como alias) orientado a contexto por proyecto.
 
@@ -538,7 +537,7 @@ Las verificaciones comprueban, entre otros puntos:
 - presencia de `node`, `npm` y `IMALEagent` / `pi`
 - instalación y activación de subagentes
 - instalación y activación del adaptador MCP
-- instalación y activación de code intelligence
+- instalación y activación de la extensión Pi de `context-mode`
 - presencia de `context-mode` en `~/.pi/agent/mcp.json`
 - disponibilidad de la extensión `ai-router`
 - presencia de los subagentes genéricos instalados en `~/.pi/agent/agents`
@@ -563,9 +562,9 @@ Las verificaciones comprueban, entre otros puntos:
 
 ## Notas operativas
 
-- Los instaladores usan `npm install -g --ignore-scripts` para reducir la superficie de ejecución innecesaria.
+- Los instaladores usan `npm install -g --ignore-scripts` para reducir la superficie de ejecución innecesaria. **Excepción**: `context-mode` se instala globalmente sin `--ignore-scripts`, porque su dependencia `better-sqlite3` necesita el prebuild y el paquete ejecuta su propio `postinstall`.
+- El servidor MCP de `context-mode` usa el binario global `context-mode`, no `npx`. Por eso `config/agent/mcp.json` declara `args: []`: el merge conserva las claves que el overlay no define, y sin ese array se heredarían los `args` de instalaciones antiguas basadas en `npx`.
 - La configuración IMALE añade reglas operativas al agente, incluyendo comunicación en castellano y restricciones de escritura fuera del directorio activo sin permiso explícito.
-- `code intelligence` se usa para descubrimiento estructural, impacto, review y learnings por repositorio.
 - `context-mode` sigue siendo la vía recomendada para logs grandes, outputs pesados y procesamiento de contexto extenso.
 - La extensión `ai-router` no sustituye a las tools nativas: ayuda a decidir **qué mirar primero** y **con qué herramienta conviene empezar**.
 

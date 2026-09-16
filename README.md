@@ -60,7 +60,7 @@ Los scripts de instalación dejan preparado lo siguiente:
 ### Capacidades incluidas
 - delegación y coordinación entre agentes
 - adaptador MCP
-- code intelligence
+- extensión Pi de `context-mode` (hooks de sesión, tools `ctx_*` y skills `ctx-*`)
 
 ### Configuración de agente
 Se copia `config/agent/*` a `~/.pi/agent`, incluyendo:
@@ -75,7 +75,7 @@ Se copia `config/agent/*` a `~/.pi/agent`, incluyendo:
 - `themes/`
 
 ### Integraciones operativas
-- `context-mode` como MCP lazy-loaded
+- `context-mode` como MCP lazy-loaded mediante el binario global `context-mode`
 - extensión `ai-router` para routing híbrido
 - launcher `pi` (comando `IMALEagent`) orientado a contexto por proyecto
 
@@ -358,7 +358,7 @@ Cuando ya conoces los archivos relevantes, usa:
 - `bash`
 
 ### Para logs o salidas grandes
-Usa `context-mode` mediante tools `ctx_` accesibles por MCP.
+Usa `context-mode`: sus tools `ctx_*` se registran por la extensión Pi y por el servidor MCP, además de las skills `ctx-search`, `ctx-index`, `ctx-stats`, `ctx-doctor`, `ctx-purge`, `ctx-insight` y `ctx-upgrade`.
 
 Es el flujo recomendado para:
 - logs extensos
@@ -378,7 +378,7 @@ Define ajustes base del agente, por ejemplo:
 
 ### `config/agent/mcp.json`
 Declara servidores MCP. En este repo destaca:
-- `context-mode`, cargado con `npx -y context-mode`
+- `context-mode`, lanzado con el binario global `context-mode` (`args: []` explícito para que el merge descarte los args de instalaciones antiguas basadas en `npx`)
 
 ### `config/agent/APPEND_SYSTEM.md`
 Añade reglas de comportamiento del agente. Entre ellas:
@@ -408,18 +408,13 @@ Aporta:
 - heurística de clasificación de prompts
 - status contextual en UI
 - reglas de routing híbrido
-- protección frente a búsquedas amplias innecesarias
-
-### `code intelligence`
-Añade capacidades indexadas por repositorio para:
-- búsqueda semántica
-- análisis de impacto
-- análisis de cambios
-- review asistida
-- learnings durables
 
 ### `context-mode`
 Se usa como complemento cuando el problema no es “qué editar”, sino “cómo analizar mucho contexto sin saturar la conversación”.
+
+Se instala de dos formas complementarias:
+- `npm install -g context-mode` → aporta el binario que lanza el servidor MCP
+- `pi install npm:context-mode` → aporta la extensión Pi (hooks de sesión y routing) y las skills `ctx-*`
 
 Casos típicos:
 - resumir logs

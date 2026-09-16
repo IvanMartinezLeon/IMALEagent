@@ -5,8 +5,8 @@
   },
   "mcpServers": {
     "context-mode": {
-      "command": "npx",
-      "args": ["-y", "context-mode@1.0.169"],
+      "command": "context-mode",
+      "args": [],
       "lifecycle": "lazy"
     }
   }

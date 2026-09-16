@@ -52,11 +52,9 @@ const LEGACY_FILES = [
 ];
 
 const PACKAGE_DIRS = [
-  "npm/node_modules/@catdaemon/pi-code-intelligence",
+  "npm/node_modules/context-mode",
   "npm/node_modules/pi-mcp-adapter",
   "npm/node_modules/pi-subagents",
-  "npm/node_modules/pi-web-access",
-  "npm/node_modules/pi-ask-user",
 ];
 
 const MERGED_JSON = ["settings.json", "mcp.json"];

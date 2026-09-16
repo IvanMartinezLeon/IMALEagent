@@ -51,6 +51,17 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM context-mode se instala globalmente porque el servidor MCP de mcp.json usa su
+REM binario `context-mode`. Sin --ignore-scripts: better-sqlite3 necesita su prebuild
+REM y el paquete ejecuta su propio postinstall.
+echo [INFO] Instalando context-mode (global)...
+call npm install -g --loglevel=error context-mode
+if errorlevel 1 (
+    echo [FAIL] Error al instalar context-mode globalmente
+    pause
+    exit /b 1
+)
+
 echo Copiando la configuración de IMALEagent a %AGENT_CONFIG_DIR%...
 if not exist "%CONFIG_SOURCE_DIR%" (
     echo [FAIL] No se encontró la carpeta de configuración en %CONFIG_SOURCE_DIR%
@@ -123,33 +134,14 @@ if errorlevel 1 (
 ) else (
     echo [OK] Paquete MCP Adapter instalado
 )
-echo [INFO] Instalando Code Intelligence...
-call "%PI_CMD%" install npm:@catdaemon/pi-code-intelligence >nul 2>nul
+echo [INFO] Instalando Context Mode...
+call "%PI_CMD%" install npm:context-mode >nul 2>nul
 if errorlevel 1 (
-    echo [FAIL] Error al instalar Code Intelligence (@catdaemon/pi-code-intelligence)
+    echo [FAIL] Error al instalar Context Mode (context-mode)
     pause
     exit /b 1
 ) else (
-    echo [OK] Paquete Code Intelligence instalado
-)
-
-echo [INFO] Instalando Web Access...
-call "%PI_CMD%" install npm:pi-web-access >nul 2>nul
-if errorlevel 1 (
-    echo [FAIL] Error al instalar Web Access (pi-web-access)
-    pause
-    exit /b 1
-) else (
-    echo [OK] Paquete Web Access instalado
-)
-echo [INFO] Instalando Ask User...
-call "%PI_CMD%" install npm:pi-ask-user >nul 2>nul
-if errorlevel 1 (
-    echo [FAIL] Error al instalar Ask User (pi-ask-user)
-    pause
-    exit /b 1
-) else (
-    echo [OK] Paquete Ask User instalado
+    echo [OK] Paquete Context Mode instalado
 )
 
 if not exist "%TEMPLATE_DIR%\pi.cmd" (
@@ -185,8 +177,7 @@ echo.
 echo Next steps:
 echo   1. Start: cd /your/project  ^&^&  imaleagent
 echo   2. Auth:  /login  or  set ANTHROPIC_API_KEY=your-key
-echo   3. Repo:  /code-intelligence-doctor  ^&^&  /enable-code-intelligence
-echo   4. Docs:  https://pi.dev/docs/latest
+echo   3. Docs:  https://pi.dev/docs/latest
 echo.
 echo Config: %AGENT_CONFIG_DIR%
 echo.

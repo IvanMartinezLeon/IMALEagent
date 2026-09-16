@@ -76,27 +76,19 @@ if command -v pi &>/dev/null; then
 		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
-	if echo "${PI_LIST}" | grep -q "@catdaemon/pi-code-intelligence"; then
-		echo -e "${GREEN}✓ Code Intelligence${NC}: Instalado y activo"
+	if echo "${PI_LIST}" | grep -q "context-mode"; then
+		echo -e "${GREEN}✓ Context Mode${NC}: Instalado y activo"
 		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
-		echo -e "${RED}✗ Code Intelligence${NC}: No detectado en 'pi list'"
+		echo -e "${RED}✗ Context Mode${NC}: No detectado en 'pi list'"
 		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 
-	if echo "${PI_LIST}" | grep -q "pi-web-access"; then
-		echo -e "${GREEN}✓ Web Access${NC}: Instalado y activo"
+	if command -v context-mode &>/dev/null; then
+		echo -e "${GREEN}✓ Binario context-mode${NC}: Disponible en PATH"
 		CHECKS_PASSED=$((CHECKS_PASSED + 1))
 	else
-		echo -e "${RED}✗ Web Access${NC}: No detectado en 'pi list'"
-		CHECKS_FAILED=$((CHECKS_FAILED + 1))
-	fi
-
-	if echo "${PI_LIST}" | grep -q "pi-ask-user"; then
-		echo -e "${GREEN}✓ Ask User${NC}: Instalado y activo"
-		CHECKS_PASSED=$((CHECKS_PASSED + 1))
-	else
-		echo -e "${RED}✗ Ask User${NC}: No detectado en 'pi list'"
+		echo -e "${RED}✗ Binario context-mode${NC}: No encontrado en PATH — el servidor MCP no arrancará"
 		CHECKS_FAILED=$((CHECKS_FAILED + 1))
 	fi
 

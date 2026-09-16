@@ -154,6 +154,15 @@ if ! npm install -g --loglevel=error --ignore-scripts @earendil-works/pi-coding-
 	exit 1
 fi
 
+# context-mode se instala globalmente porque el servidor MCP de mcp.json usa su
+# binario `context-mode`. Sin --ignore-scripts: better-sqlite3 necesita su prebuild
+# y el paquete ejecuta su propio postinstall.
+echo -e "${YELLOW}Instalando context-mode (global)...${NC}"
+if ! npm install -g --loglevel=error context-mode >/dev/null 2>&1; then
+	echo -e "${RED}✗ Error: No se pudo instalar context-mode globalmente${NC}"
+	exit 1
+fi
+
 echo -e "${YELLOW}Copiando la configuración de IMALEagent...${NC}"
 install_config_stage "bin/pi" "bin/imaleagent"
 echo -e "${GREEN}✓ Configuración copiada ${NC}"
@@ -185,36 +194,18 @@ else
 	exit 1
 fi
 
-echo -e "${YELLOW}Instalando Code Intelligence...${NC}"
-if "${PI_BIN}" install npm:@catdaemon/pi-code-intelligence >/dev/null 2>&1; then
-	echo -e "${GREEN}✓ Paquete Code Intelligence instalado${NC}"
+echo -e "${YELLOW}Instalando Context Mode...${NC}"
+if "${PI_BIN}" install npm:context-mode >/dev/null 2>&1; then
+	echo -e "${GREEN}✓ Paquete Context Mode instalado${NC}"
 else
-	echo -e "${RED}✗ Error al instalar Code Intelligence (@catdaemon/pi-code-intelligence)${NC}"
-	exit 1
-fi
-
-echo -e "${YELLOW}Instalando Web Access...${NC}"
-if "${PI_BIN}" install npm:pi-web-access >/dev/null 2>&1; then
-	echo -e "${GREEN}✓ Paquete Web Access instalado${NC}"
-else
-	echo -e "${RED}✗ Error al instalar Web Access (pi-web-access)${NC}"
-	exit 1
-fi
-
-echo -e "${YELLOW}Instalando Ask User...${NC}"
-if "${PI_BIN}" install npm:pi-ask-user >/dev/null 2>&1; then
-	echo -e "${GREEN}✓ Paquete Ask User instalado${NC}"
-else
-	echo -e "${RED}✗ Error al instalar Ask User (pi-ask-user)${NC}"
+	echo -e "${RED}✗ Error al instalar Context Mode (context-mode)${NC}"
 	exit 1
 fi
 
 echo -e "${YELLOW}Verificando paquetes instalados...${NC}"
 check_pi_package "pi-subagents" "Coding Agent" || true
 check_pi_package "pi-mcp-adapter" "MCP Adapter" || true
-check_pi_package "@catdaemon/pi-code-intelligence" "Code Intelligence" || true
-check_pi_package "pi-web-access" "Web Access" || true
-check_pi_package "pi-ask-user" "Ask User" || true
+check_pi_package "context-mode" "Context Mode" || true
 
 if [ ! -f "${TEMPLATE_DIR}/pi-unix-wrapper.sh" ]; then
 	echo -e "${RED}✗ Error: No se encontró la plantilla del wrapper en ${TEMPLATE_DIR}/pi-unix-wrapper.sh${NC}"
@@ -255,8 +246,7 @@ echo ""
 echo -e "${BLUE}Next steps:${NC}"
 echo "  1. cd /your/project  &&  imaleagent"
 echo "  2. /login  or  export ANTHROPIC_API_KEY=your-key"
-echo "  3. /code-intelligence-doctor  &&  /enable-code-intelligence"
-echo "  4. Docs: https://pi.dev/docs/latest"
+echo "  3. Docs: https://pi.dev/docs/latest"
 echo ""
 echo -e "${BLUE}Config installed:${NC} ${AGENT_CONFIG_DIR}"
 echo ""

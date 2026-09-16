@@ -146,6 +146,16 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+# context-mode se instala globalmente porque el servidor MCP de mcp.json usa su
+# binario `context-mode`. Sin --ignore-scripts: better-sqlite3 necesita su prebuild
+# y el paquete ejecuta su propio postinstall.
+Write-Info "Instalando context-mode (global)..."
+npm install -g --loglevel=error context-mode
+if ($LASTEXITCODE -ne 0) {
+    Write-Error-Custom "Error al instalar context-mode globalmente."
+    exit $LASTEXITCODE
+}
+
 Write-Info "Copiando la configuración de IMALEagent a $agentConfigDir..."
 if (-not (Test-Path $configSourceDir)) {
     Write-Error-Custom "No se encontró la carpeta de configuración en $configSourceDir"
@@ -196,32 +206,12 @@ if ($LASTEXITCODE -eq 0) {
     exit $LASTEXITCODE
 }
 
-Write-Info "Instalando Code Intelligence..."
-& $piExecutable install npm:@catdaemon/pi-code-intelligence >$null
+Write-Info "Instalando Context Mode..."
+& $piExecutable install npm:context-mode >$null
 if ($LASTEXITCODE -eq 0) {
-    Write-Success "Paquete Code Intelligence instalado"
+    Write-Success "Paquete Context Mode instalado"
 } else {
-    Write-Error-Custom "Error al instalar Code Intelligence (@catdaemon/pi-code-intelligence)"
-    exit $LASTEXITCODE
-}
-
-
-
-Write-Info "Instalando Web Access..."
-& $piExecutable install npm:pi-web-access >$null
-if ($LASTEXITCODE -eq 0) {
-    Write-Success "Paquete Web Access instalado"
-} else {
-    Write-Error-Custom "Error al instalar Web Access (pi-web-access)"
-    exit $LASTEXITCODE
-}
-
-Write-Info "Instalando Ask User..."
-& $piExecutable install npm:pi-ask-user >$null
-if ($LASTEXITCODE -eq 0) {
-    Write-Success "Paquete Ask User instalado"
-} else {
-    Write-Error-Custom "Error al instalar Ask User (pi-ask-user)"
+    Write-Error-Custom "Error al instalar Context Mode (context-mode)"
     exit $LASTEXITCODE
 }
 
@@ -264,8 +254,7 @@ Write-Host ""
 Write-Info "Next steps:"
 Write-Host "  1. Start: cd /your/project  &&  imaleagent"
 Write-Host "  2. Auth:  /login  or  `$env:ANTHROPIC_API_KEY='your-key'"
-Write-Host "  3. Repo:  /code-intelligence-doctor  &&  /enable-code-intelligence"
-Write-Host "  4. Docs:  https://pi.dev/docs/latest"
+Write-Host "  3. Docs:  https://pi.dev/docs/latest"
 Write-Host ""
 Write-Info "Config: $agentConfigDir"
 Write-Host ""

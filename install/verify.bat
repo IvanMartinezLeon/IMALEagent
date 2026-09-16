@@ -81,32 +81,21 @@ if %errorlevel% equ 0 (
         set /a checks_fail+=1
     )
 
-    pi list 2>nul | findstr /C:"@catdaemon/pi-code-intelligence" >nul
+    pi list 2>nul | findstr /C:"context-mode" >nul
     if !errorlevel! equ 0 (
-        echo [OK] Code Intelligence: Instalado y activo
+        echo [OK] Context Mode: Instalado y activo
         set /a checks_pass+=1
     ) else (
-        echo [FAIL] Code Intelligence: No detectado en "pi list"
+        echo [FAIL] Context Mode: No detectado en "pi list"
         set /a checks_fail+=1
     )
 
-
-
-    pi list 2>nul | findstr /C:"pi-web-access" >nul
+    where context-mode >nul 2>nul
     if !errorlevel! equ 0 (
-        echo [OK] Web Access: Instalado y activo
+        echo [OK] Binario context-mode: Disponible en PATH
         set /a checks_pass+=1
     ) else (
-        echo [FAIL] Web Access: No detectado en "pi list"
-        set /a checks_fail+=1
-    )
-
-    pi list 2>nul | findstr /C:"pi-ask-user" >nul
-    if !errorlevel! equ 0 (
-        echo [OK] Ask User: Instalado y activo
-        set /a checks_pass+=1
-    ) else (
-        echo [FAIL] Ask User: No detectado en "pi list"
+        echo [FAIL] Binario context-mode: No encontrado en PATH (el servidor MCP no arrancara)
         set /a checks_fail+=1
     )
 

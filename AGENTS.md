@@ -11,7 +11,7 @@ Si aplicas cambios sobre proyectos de terceros usando esta configuración, las r
 
 Lo que produce:
 
-- un binario base (`@earendil-works/pi-coding-agent`) + paquetes (`pi-subagents`, `pi-code-intelligence`, adaptador MCP),
+- un binario base (`@earendil-works/pi-coding-agent`) + paquetes (`pi-subagents`, adaptador MCP, `context-mode`),
 - una configuración de agente homogénea copiada a `~/.pi/agent`,
 - el comando `IMALEagent` (con `pi` como alias),
 - scripts de verificación y desinstalación multiplataforma.
@@ -143,7 +143,8 @@ Invariantes que no se pueden romper:
 
 ### JSON de configuración (`config/agent/*.json`)
 - JSON estricto (sin comentarios ni trailing commas). El CI lo valida.
-- `settings.json`, `mcp.json` y `presets.json` son **fusionables**: documenta cualquier clave nueva que el merge deba respetar, porque el usuario puede tener la suya.
+- `settings.json`, `mcp.json` y `presets.json` son **fusionables**: documenta cualquier clave nueva que el merge deba respetar, porque el usuario puede tener la suya. Caso conocido: `mcpServers.context-mode` declara `args: []` a propósito, porque el merge conserva las claves ausentes en el overlay y sin ese array se heredarían los `args` de instalaciones antiguas basadas en `npx`.
+- `context-mode` es la única instalación global npm sin `--ignore-scripts`: `better-sqlite3` necesita su prebuild y el paquete ejecuta su propio `postinstall`.
 
 ### Prompt workflows (`config/agent/prompts/`)
 - Ficheros invocables: llevan `chain: step-a -> step-b` en el frontmatter.

@@ -64,7 +64,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     thinkingLevel: "high",
     instructions:
       "Estás en MODO REVISIÓN. Tu objetivo es revisar código de forma exhaustiva y proponer mejoras.\n\nReglas:\n- Lee archivos completos (sin offset/limit) para tener contexto total\n- Busca: bugs, problemas de seguridad, code smells, falta de tests, strings sin traducir, violaciones de arquitectura, rendimiento\n- Para cada hallazgo: explica el problema, por qué es problemático y la solución propuesta\n- Clasifica hallazgos por severidad: 🔴 crítico, 🟠 alto, 🟡 medio, 🔵 bajo, ⚪ sugerencia\n- Verifica cobertura de tests y patrones de testing\n- Señala código muerto (principio YAGNI)\n- Revisa consistencia con el resto del código base\n- Comprueba que no haya secretos hardcodeados (tokens, passwords, API keys)\n- Al final, da un resumen ejecutivo con puntuación general y prioridades",
-    tools: ["read", "bash", "grep", "find", "ls", "rg", "code_intelligence_search", "code_intelligence_impact", "code_intelligence_analyze_changes", "web_search"],
+    tools: ["read", "bash", "grep", "find", "ls", "rg", "web_search"],
   },
   implementacion: {
     label: "⚡ Implementación",
@@ -74,7 +74,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     thinkingLevel: "high",
     instructions:
       "Estás en MODO IMPLEMENTACIÓN. Tu objetivo es hacer cambios de código enfocados, correctos y bien probados.\n\nReglas:\n- Mantén el alcance ajustado. Haz exactamente lo que se pide, ni más ni menos\n- Lee archivos antes de editarlos para entender el estado actual\n- Haz ediciones quirúrgicas con edit (prefiere edit sobre write para archivos existentes)\n- Explica brevemente tu razonamiento antes de cada cambio\n- Sigue las convenciones del proyecto: estructura, naming, patrones, estilos\n- Ejecuta tests o type checks después de los cambios si el proyecto los tiene\n- Si encuentras complejidad inesperada, PARA y explica el problema en lugar de improvisar\n- Si no existe un plan o spec, pregunta antes de empezar cambios no triviales\n- No dejes código comentado, console.logs, o todo(s) sin resolver\n- Al terminar: resume lo que se hizo y nota trabajo pendiente o tests necesarios",
-    tools: ["read", "bash", "edit", "write", "rg", "code_intelligence_search", "code_intelligence_impact", "code_intelligence_analyze_changes"],
+    tools: ["read", "bash", "edit", "write", "rg"],
   },
   debug: {
     label: "◉ Debug",
@@ -83,7 +83,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     footerLabel: "debug",
     thinkingLevel: "high",
     instructions:
-      "Estás en MODO DEBUG. Tu objetivo es diagnosticar y resolver problemas técnicos de forma metódica.\n\nReglas:\n- Enfoque forense: primero entiende el problema, luego busca la causa raíz\n- Lee logs, trazas de error y salida de tests primero\n- Formula hipótesis antes de hacer cambios\n- Aísla variables: cambia una cosa a la vez\n- Usa salida verbosa/verbose cuando sea necesario\n- Si hay logs grandes (>50 líneas), usa context-mode (ctx_write/ctx_read) o guarda en archivo en vez de volcar en conversación\n- Documenta hallazgos intermedios para no perder contexto\n- Si usas subagentes, usa fork para no contaminar el contexto principal\n- Al resolver: explica la causa raíz y por qué la solución funciona\n- Si no encuentras la causa, resume lo descartado y sugiere siguientes pasos\n- Usa code_intelligence_search para entender cómo funciona el código antes de modificarlo",
+      "Estás en MODO DEBUG. Tu objetivo es diagnosticar y resolver problemas técnicos de forma metódica.\n\nReglas:\n- Enfoque forense: primero entiende el problema, luego busca la causa raíz\n- Lee logs, trazas de error y salida de tests primero\n- Formula hipótesis antes de hacer cambios\n- Aísla variables: cambia una cosa a la vez\n- Usa salida verbosa/verbose cuando sea necesario\n- Si hay logs grandes (>50 líneas), usa context-mode (ctx_write/ctx_read) o guarda en archivo en vez de volcar en conversación\n- Documenta hallazgos intermedios para no perder contexto\n- Si usas subagentes, usa fork para no contaminar el contexto principal\n- Al resolver: explica la causa raíz y por qué la solución funciona\n- Si no encuentras la causa, resume lo descartado y sugiere siguientes pasos",
   },
   arquitectura: {
     label: "⊡ Arquitectura",
@@ -92,7 +92,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     footerLabel: "arch",
     thinkingLevel: "high",
     instructions:
-      "Estás en MODO ARQUITECTURA. Tu objetivo es analizar y diseñar la estructura del sistema.\n\nReglas:\n- Usa code_intelligence_search para entender patrones existentes\n- Usa code_intelligence_impact para entender dependencias y acoplamiento\n- Analiza: acoplamiento, cohesión, separación de concerns, patrones, deuda técnica\n- Propón cambios estructurales con diagramas en Markdown (Mermaid si aplica)\n- Identifica riesgos arquitectónicos y trade-offs explícitamente\n- Para diseños nuevos: enumera componentes, responsabilidades, interfaces y flujo de datos\n- Evalúa si la arquitectura actual escala para los requisitos\n- Documenta decisiones y su justificación (ADR - Architecture Decision Record)\n- Sugiere mejoras incrementales, no rewriting completo a menos que sea necesario\n- Señala violaciones del principio de responsabilidad única y dependency inversion",
+      "Estás en MODO ARQUITECTURA. Tu objetivo es analizar y diseñar la estructura del sistema.\n\nReglas:\n- Mapea el código existente con ls/find antes de buscar, y usa rg acotado a rutas concretas\n- Lee los módulos clave para entender dependencias y acoplamiento\n- Analiza: acoplamiento, cohesión, separación de concerns, patrones, deuda técnica\n- Propón cambios estructurales con diagramas en Markdown (Mermaid si aplica)\n- Identifica riesgos arquitectónicos y trade-offs explícitamente\n- Para diseños nuevos: enumera componentes, responsabilidades, interfaces y flujo de datos\n- Evalúa si la arquitectura actual escala para los requisitos\n- Documenta decisiones y su justificación (ADR - Architecture Decision Record)\n- Sugiere mejoras incrementales, no rewriting completo a menos que sea necesario\n- Señala violaciones del principio de responsabilidad única y dependency inversion",
   },
   exploracion: {
     label: "🔍 Exploración",
@@ -101,7 +101,7 @@ const BUILTIN_PRESETS: PresetManifest = {
     footerLabel: "explore",
     thinkingLevel: "medium",
     instructions:
-      "Estás en MODO EXPLORACIÓN. Tu objetivo es entender un código base nuevo o una parte desconocida del proyecto.\n\nReglas:\n- Sigue la jerarquía de 3 pasos: code_intelligence_search → code_intelligence_impact → bash (solo verificación)\n- Comienza con una vista general: estructura de directorios, tecnologías principales, patrones\n- Identifica: entry points, configuraciones clave, modelos de datos, flujos principales\n- Documenta hallazgos a medida que avanzas para no repetir exploración\n- Si encuentras tests, revísalos para entender el comportamiento esperado\n- Usa code_intelligence_record_learning para patrones duraderos que descubras\n- Al final: resume la arquitectura, puntos clave y recomendaciones para trabajo futuro",
+      "Estás en MODO EXPLORACIÓN. Tu objetivo es entender un código base nuevo o una parte desconocida del proyecto.\n\nReglas:\n- Sigue la jerarquía de 3 pasos: ls/find → rg acotado → read dirigido\n- Comienza con una vista general: estructura de directorios, tecnologías principales, patrones\n- Identifica: entry points, configuraciones clave, modelos de datos, flujos principales\n- Documenta hallazgos a medida que avanzas para no repetir exploración\n- Si encuentras tests, revísalos para entender el comportamiento esperado\n- Al final: resume la arquitectura, puntos clave y recomendaciones para trabajo futuro",
   },
 };
 

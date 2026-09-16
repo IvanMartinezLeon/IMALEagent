@@ -29,7 +29,7 @@ Usa este documento si necesitas alguna de estas tareas:
 - instalar el stack en una máquina nueva
 - entender qué valida realmente `verify.*`
 - diagnosticar por qué `IMALEagent` no aparece en PATH
-- revisar por qué falta `code intelligence` o `context-mode`
+- revisar por qué falta `context-mode`
 - confirmar si el router híbrido está funcionando correctamente
 
 Si solo quieres empezar rápido, usa `install/README.md`.
@@ -86,12 +86,13 @@ install.bat
 
 1. instala `@earendil-works/pi-coding-agent`
 2. copia `config/agent/*` a `~/.pi/agent`
-3. instala:
+3. instala el binario global `context-mode`
+4. instala:
    - subagentes
    - adaptador MCP
-   - code intelligence
-4. configura `context-mode`
-5. deja disponible la extensión `ai-router`
+   - extensión Pi de `context-mode`
+5. configura `context-mode` en `mcp.json`
+6. deja disponible la extensión `ai-router`
 6. crea o actualiza el comando `IMALEagent` (y `pi` como alias)
 
 ---
@@ -100,7 +101,7 @@ install.bat
 
 > ⚠ No recomendada. Prefiere el instalador automático (un solo comando curl/iwr).
 
-La instalación manual mínima instala los paquetes base (agente principal, subagentes, adaptador MCP y code intelligence). Ejecuta los comandos equivalentes que aparecen en los scripts de `install/`.
+La instalación manual mínima instala los paquetes base (agente principal, subagentes, adaptador MCP, el binario global `context-mode` y su extensión Pi). Ejecuta los comandos equivalentes que aparecen en los scripts de `install/`.
 
 ### Limitación importante
 
@@ -141,7 +142,7 @@ pi list
 Debe aparecer al menos:
 - `subagentes`
 - `adaptador MCP`
-- `code intelligence`
+- `context-mode`
 
 ### 3. Validación de configuración copiada
 
@@ -254,20 +255,6 @@ which pi
 ```
 
 Si sigue fallando, reejecuta `bash install.sh`.
-
-### `pi list` no muestra `code intelligence`
-
-Causa probable:
-- instalación incompleta
-- fallo durante `pi install`
-
-Acción:
-1. reejecuta el instalador de la plataforma
-2. vuelve a comprobar:
-
-```bash
-pi list
-```
 
 ### `context-mode` no aparece en `/mcp`
 
